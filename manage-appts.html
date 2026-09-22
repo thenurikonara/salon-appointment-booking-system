@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LUMIÈRE — Manage Appointments</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════
+       HTML STRUCTURE
+  ════════════════════════════════════════ -->
+
+  <!-- ── Sidebar Navigation ── -->
+  <div class="sidebar">
+    <div class="sb-logo">LUMI<span>È</span>RE</div>
+
+    <div class="sb-section">Navigation</div>
+    <a href="admin.html"             class="sb-link"><span class="icon">◈</span> Dashboard</a>
+    <a href="manage-appts.html"      class="sb-link active"><span class="icon">◷</span> Appointments</a>
+    <a href="manage-services.html"   class="sb-link"><span class="icon">◇</span> Services</a>
+    <a href="manage-users.html"      class="sb-link"><span class="icon">○</span> Customers</a>
+    <a href="manage-stylists.html"   class="sb-link"><span class="icon">✦</span> Stylists</a>
+
+    <div class="sb-section">Reports</div>
+    <a href="reports-reviews.html"   class="sb-link"><span class="icon">★</span> Reviews</a>
+    <a href="reports-analytics.html" class="sb-link"><span class="icon">◇</span> Analytics</a>
+    <a href="settings.html"          class="sb-link"><span class="icon">○</span> Settings</a>
+
+    <div class="sb-footer">
+      <div class="sb-user">Admin Account</div>
+      <a href="login.html" class="sb-logout">← Sign Out</a>
+    </div>
+  </div>
+
+  <!-- ── Main Content ── -->
+  <div class="main">
+
+    <!-- Page header -->
+    <div class="topbar">
+      <div>
+        <h2>Appointment <em>Management</em></h2>
+        <p>View, filter, confirm and manage all appointments</p>
+      </div>
+      <button class="apply-btn" onclick="loadAppointments()">↻ Refresh</button>
+    </div>
+
+    <div class="content">
+
+      <!-- Stat cards -->
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">Total Today</div>
+          <div class="stat-num rose" id="s-today">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Confirmed</div>
+          <div class="stat-num green" id="s-confirmed">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Pending</div>
+          <div class="stat-num warn" id="s-pending">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Cancelled</div>
+          <div class="stat-num" id="s-cancelled">—</div>
+        </div>
+      </div>
+
+      <!-- Status tabs -->
+      <div class="status-tabs">
+        <button class="status-tab active" onclick="setStatusFilter('', this)">All</button>
+        <button class="status-tab" onclick="setStatusFilter('confirmed', this)">Confirmed</button>
+        <button class="status-tab" onclick="setStatusFilter('pending', this)">Pending</button>
+        <button class="status-tab" onclick="setStatusFilter('cancelled', this)">Cancelled</button>
+      </div>
+
+      <!-- Filter toolbar -->
+      <div class="toolbar">
+        <span class="toolbar-label">Filter:</span>
+
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="Search client name or service..." oninput="filterTable()"/>
+        </div>
+
+        <input type="date" class="date-input" id="dateFilter" onchange="loadAppointments()"/>
+
+        <select class="filter-select" id="stylistFilter" onchange="filterTable()">
+          <option value="">All Stylists</option>
+          <option>Any Available</option>
+          <option>Amaya Silva</option>
+          <option>Kavya Perera</option>
+          <option>Nisha Fernando</option>
+          <option>Dulani Jayasinghe</option>
+        </select>
+
+        <button class="clear-btn" onclick="clearFilters()">Clear</button>
+      </div>
+
+      <!-- Results count + export -->
+      <div class="results-info">
+        <span class="results-count" id="resultsCount">Loading...</span>
+        <button class="export-btn" onclick="exportCSV()">Export CSV</button>
+      </div>
+
+      <!-- Appointments table -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th onclick="sortTable('ref')">Ref ↕</th>
+              <th onclick="sortTable('client')">Client ↕</th>
+              <th>Service</th>
+              <th>Stylist</th>
+              <th onclick="sortTable('date')">Date ↕</th>
+              <th onclick="sortTable('time')">Time ↕</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="apptBody">
+            <tr>
+              <td colspan="8">
+                <div class="empty-state">
+                  <span class="empty-icon">⏳</span>Loading appointments...
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+
+
+  <!-- ═══════════════════════════════════════
+       CSS STYLES
+  ════════════════════════════════════════ -->
+  <style>
+
+    /* ── Reset & base ── */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* ── Color variables ── */
+    :root {
+      --rose:      #d4a5a0;
+      --rose-deep: #b8817a;
+      --rose-pale: #f7ede8;
+      --blush:     #fdf0ec;
+      --ivory:     #faf7f2;
+      --ink:       #2c2420;
+      --muted:     #9a8f8a;
+      --border:    rgba(180,140,130,0.2);
+      --green:     #6b9e7a;
+    }
+
+    body {
+      font-family: 'Jost', sans-serif;
+      background: var(--ivory);
+      color: var(--ink);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 220px;
+      background: white;
+      border-right: 1px solid var(--border);
+      position: fixed;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .sb-logo {
+      padding: 32px 28px 28px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      letter-spacing: 5px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sb-logo span { color: var(--rose-deep); }
+    .sb-section {
+      padding: 22px 0 6px 28px;
+      font-size: 9px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--muted);
+      opacity: 0.6;
+    }
+    .sb-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 28px;
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      border-left: 2px solid transparent;
+      transition: all 0.3s;
+    }
+    .sb-link:hover { color: var(--ink); background: var(--blush); }
+    .sb-link.active { color: var(--rose-deep); background: var(--rose-pale); border-left-color: var(--rose-deep); }
+    .sb-link .icon { font-size: 15px; width: 18px; text-align: center; }
+    .sb-footer {
+      margin-top: auto;
+      padding: 22px 28px;
+      border-top: 1px solid var(--border);
+    }
+    .sb-user { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    .sb-logout { color: var(--rose-deep); font-size: 11px; letter-spacing: 2px; text-decoration: none; text-transform: uppercase; }
+
+    /* ── Main area ── */
+    .main {
+      margin-left: 220px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .topbar {
+      padding: 22px 48px;
+      border-bottom: 1px solid var(--border);
+      background: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .topbar h2 { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 300; }
+    .topbar h2 em { color: var(--rose-deep); font-style: italic; }
+    .topbar p { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .content { padding: 44px 48px; }
+
+    /* ── Stat cards ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      margin-bottom: 36px;
+    }
+    .stat {
+      background: white;
+      padding: 24px 28px;
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--rose-deep);
+    }
+    .stat-label {
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 40px;
+      font-weight: 300;
+      line-height: 1;
+    }
+    .stat-num.rose  { color: var(--rose-deep); }
+    .stat-num.green { color: var(--green); }
+    .stat-num.warn  { color: #c9a96e; }
+
+    /* ── Status tabs ── */
+    .status-tabs {
+      display: flex;
+      margin-bottom: 24px;
+    }
+    .status-tab {
+      padding: 10px 20px;
+      background: white;
+      border: 1.5px solid var(--border);
+      font-family: 'Jost', sans-serif;
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer;
+      margin-right: -1.5px;
+      transition: all 0.3s;
+    }
+    .status-tab:hover { color: var(--rose-deep); border-color: var(--rose-deep); z-index: 1; position: relative; }
+    .status-tab.active { background: var(--rose-deep); color: white; border-color: var(--rose-deep); z-index: 2; position: relative; }
+
+    /* ── Filter toolbar ── */
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      background: white;
+      padding: 18px 24px;
+      border: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .toolbar-label {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .search-wrap { position: relative; flex: 1; min-width: 200px; }
+    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--muted); }
+    .search-wrap input {
+      width: 100%;
+      padding: 10px 16px 10px 38px;
+      border: 1.5px solid var(--border);
+      background: var(--ivory);
+      font-family: 'Jost', sans-serif;
+      font-size: 13px;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    .search-wrap input:focus { border-color: var(--rose-deep); }
+    .search-wrap input::placeholder { color: var(--muted); }
+    .filter-select,
+    .date-input {
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      background: var(--ivory);
+      font-family: 'Jost', sans-serif;
+      font-size: 12px;
+      color: var(--ink);
+      outline: none;
+      appearance: none;
+    }
+    .filter-select:focus,
+    .date-input:focus { border-color: var(--rose-deep); }
+    .apply-btn {
+      background: var(--rose-deep);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-family: 'Jost', sans-serif;
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.3s;
+    }
+    .apply-btn:hover { background: var(--rose); }
+    .clear-btn {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--muted);
+      padding: 10px 16px;
+      font-family: 'Jost', sans-serif;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.3s;
+    }
+    .clear-btn:hover { border-color: var(--ink); color: var(--ink); }
+
+    /* ── Results info ── */
+    .results-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .results-count { font-size: 12px; color: var(--muted); }
+    .export-btn {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--muted);
+      padding: 7px 16px;
+      font-family: 'Jost', sans-serif;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .export-btn:hover { border-color: var(--rose-deep); color: var(--rose-deep); }
+
+    /* ── Appointments table ── */
+    .table-wrap {
+      background: white;
+      border: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    table { width: 100%; border-collapse: collapse; min-width: 800px; }
+    thead tr { background: var(--rose-pale); border-bottom: 1px solid var(--border); }
+    th {
+      padding: 14px 18px;
+      text-align: left;
+      font-size: 9px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 400;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    th:hover { color: var(--rose-deep); }
+    td {
+      padding: 13px 18px;
+      border-bottom: 1px solid rgba(180,140,130,0.08);
+      font-size: 13px;
+      color: var(--muted);
+      vertical-align: middle;
+    }
+    td strong { color: var(--ink); font-weight: 400; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--blush); }
+
+    /* Status badge */
+    .badge {
+      display: inline-block;
+      padding: 3px 12px;
+      font-size: 9px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+    .badge.confirmed { background: rgba(107,158,122,0.1); color: var(--green);    border: 1px solid rgba(107,158,122,0.2); }
+    .badge.pending   { background: var(--rose-pale);     color: var(--rose-deep); border: 1px solid var(--border); }
+    .badge.cancelled { background: rgba(184,129,122,0.08);color: var(--rose-deep);border: 1px solid rgba(184,129,122,0.2); }
+
+    /* Action buttons */
+    .act-btn {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      padding: 5px 12px;
+      cursor: pointer;
+      font-family: 'Jost', sans-serif;
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-right: 4px;
+      transition: all 0.3s;
+    }
+    .act-btn.confirm-btn:hover { border-color: var(--green); color: var(--green); }
+    .act-btn.cancel-btn:hover  { border-color: var(--rose-deep); color: var(--rose-deep); }
+
+    /* Empty state */
+    .empty-state { padding: 60px; text-align: center; color: var(--muted); font-size: 13px; }
+    .empty-icon  { font-size: 36px; display: block; margin-bottom: 12px; opacity: 0.4; }
+
+  </style>
+
+
+  <!-- ═══════════════════════════════════════
+       JAVASCRIPT
+  ════════════════════════════════════════ -->
+  <script>
+
+    const API   = 'http://localhost:5000';
+    const token = () => localStorage.getItem('token');
+
+    // Store all fetched appointments and sort settings
+    let allAppts     = [];
+    let statusFilter = '';
+    let sortField    = 'time';
+    let sortAsc      = true;
+
+    // Set today's date as default in date picker
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('dateFilter').value = today;
+
+    // ── Fetch stat numbers ──
+    async function loadStats() {
+      try {
+        const res   = await fetch(`${API}/api/admin/stats`, { headers: { 'Authorization': `Bearer ${token()}` } });
+        const stats = await res.json();
+        document.getElementById('s-today').textContent     = stats.today_bookings  || 0;
+        document.getElementById('s-confirmed').textContent = stats.confirmed_today || 0;
+        document.getElementById('s-pending').textContent   = stats.pending_today   || 0;
+        document.getElementById('s-cancelled').textContent = stats.cancelled_today || 0;
+      } catch (e) {}
+    }
+
+    // ── Fetch appointments from backend ──
+    async function loadAppointments() {
+      const date = document.getElementById('dateFilter').value;
+      const url  = date
+        ? `${API}/api/admin/appointments?date=${date}&all=true`
+        : `${API}/api/admin/appointments?all=true`;
+
+      document.getElementById('apptBody').innerHTML =
+        '<tr><td colspan="8"><div class="empty-state"><span class="empty-icon">⏳</span>Loading...</div></td></tr>';
+
+      try {
+        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token()}` } });
+        allAppts  = await res.json();
+        filterTable();
+        loadStats();
+      } catch (e) {
+        document.getElementById('apptBody').innerHTML =
+          '<tr><td colspan="8"><div class="empty-state"><span class="empty-icon">⚠️</span>Could not load appointments.</div></td></tr>';
+      }
+    }
+
+    // ── Filter the local array and re-render ──
+    function filterTable() {
+      const search  = document.getElementById('searchInput').value.toLowerCase();
+      const stylist = document.getElementById('stylistFilter').value.toLowerCase();
+
+      let filtered = allAppts.filter(a => {
+        const matchSearch  = (a.client||'').toLowerCase().includes(search) ||
+                             (a.service||'').toLowerCase().includes(search) ||
+                             (a.ref||'').toLowerCase().includes(search);
+        const matchStylist = !stylist || (a.stylist||'').toLowerCase().includes(stylist);
+        const matchStatus  = !statusFilter || a.status === statusFilter;
+        return matchSearch && matchStylist && matchStatus;
+      });
+
+      filtered.sort((a, b) => {
+        let va = a[sortField] || '', vb = b[sortField] || '';
+        return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+
+      renderTable(filtered);
+    }
+
+    // ── Build table rows from array ──
+    function renderTable(appts) {
+      const tbody = document.getElementById('apptBody');
+      tbody.innerHTML = '';
+      document.getElementById('resultsCount').textContent =
+        `${appts.length} appointment${appts.length !== 1 ? 's' : ''} found`;
+
+      if (!appts.length) {
+        tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><span class="empty-icon">📅</span>No appointments match.</div></td></tr>';
+        return;
+      }
+
+      appts.forEach(a => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${a.ref || 'LM00' + a.id}</strong></td>
+          <td>
+            <strong>${a.client}</strong>
+            ${a.phone ? `<br/><span style="font-size:11px">${a.phone}</span>` : ''}
+          </td>
+          <td>
+            ${a.service}
+            <br/><span style="font-size:11px;color:var(--rose-deep)">LKR ${Number(a.price || 0).toLocaleString()}</span>
+          </td>
+          <td>${a.stylist || 'Any Available'}</td>
+          <td><strong>${a.date}</strong></td>
+          <td><strong>${a.time}</strong></td>
+          <td><span class="badge ${a.status}" id="badge-${a.id}">${cap(a.status)}</span></td>
+          <td>
+            <button class="act-btn confirm-btn" onclick="updateStatus(${a.id},'confirmed')">✓ Confirm</button>
+            <button class="act-btn cancel-btn"  onclick="updateStatus(${a.id},'cancelled')">✕ Cancel</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // ── Click a status tab ──
+    function setStatusFilter(status, btn) {
+      statusFilter = status;
+      document.querySelectorAll('.status-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterTable();
+    }
+
+    // ── Click a column header to sort ──
+    function sortTable(field) {
+      if (sortField === field) sortAsc = !sortAsc;
+      else { sortField = field; sortAsc = true; }
+      filterTable();
+    }
+
+    // ── Reset all filters ──
+    function clearFilters() {
+      document.getElementById('searchInput').value   = '';
+      document.getElementById('dateFilter').value    = today;
+      document.getElementById('stylistFilter').value = '';
+      statusFilter = '';
+      document.querySelectorAll('.status-tab').forEach(b => b.classList.remove('active'));
+      document.querySelector('.status-tab').classList.add('active');
+      loadAppointments();
+    }
+
+    // ── Confirm or cancel one appointment ──
+    async function updateStatus(id, status) {
+      try {
+        const res = await fetch(`${API}/api/admin/appointments/${id}`, {
+          method:  'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token()}` },
+          body:    JSON.stringify({ status })
+        });
+        if (res.ok) {
+          const badge = document.getElementById(`badge-${id}`);
+          if (badge) { badge.className = `badge ${status}`; badge.textContent = cap(status); }
+          const appt = allAppts.find(a => a.id === id);
+          if (appt) appt.status = status;
+          loadStats();
+        }
+      } catch (e) { alert('Could not update. Check backend.'); }
+    }
+
+    // ── Export appointments as CSV ──
+    function exportCSV() {
+      if (!allAppts.length) { alert('No appointments to export.'); return; }
+      const headers = ['Ref','Client','Phone','Service','Price','Stylist','Date','Time','Status'];
+      const rows    = allAppts.map(a => [
+        a.ref || 'LM00' + a.id, a.client, a.phone || '', a.service, a.price || 0,
+        a.stylist || 'Any', a.date, a.time, a.status
+      ]);
+      const csv  = [headers, ...rows].map(r => r.join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href = url;
+      a.download = `lumiere-appointments-${today}.csv`;
+      a.click();
+    }
+
+    // Capitalise first letter
+    function cap(str) { return str ? str.charAt(0).toUpperCase() + str.slice(1) : ''; }
+
+    // Auto-refresh every 60 seconds
+    setInterval(loadAppointments, 60000);
+    loadAppointments();
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LUMIÈRE — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════
+       HTML STRUCTURE
+  ════════════════════════════════════════ -->
+
+  <!-- ── Sidebar ── -->
+  <div class="sidebar">
+    <div class="sb-logo">LUMI<span>È</span>RE</div>
+
+    <div class="sb-section">Navigation</div>
+    <a href="admin.html"           class="sb-link active"><span class="icon">◈</span> Dashboard</a>
+    <a href="manage-appts.html"    class="sb-link"><span class="icon">◷</span> Appointments</a>
+    <a href="manage-services.html" class="sb-link"><span class="icon">◇</span> Services</a>
+    <a href="manage-users.html"    class="sb-link"><span class="icon">○</span> Customers</a>
+    <a href="manage-stylists.html" class="sb-link"><span class="icon">✦</span> Stylists</a>
+
+    <div class="sb-section">Reports</div>
+    <a href="reports-reviews.html"   class="sb-link"><span class="icon">★</span> Reviews</a>
+    <a href="reports-analytics.html" class="sb-link"><span class="icon">◇</span> Analytics</a>
+    <a href="settings.html"          class="sb-link"><span class="icon">○</span> Settings</a>
+
+    <div class="sb-footer">
+      <div class="sb-user" id="adminName">Admin Account</div>
+      <a href="login.html" class="sb-logout">← Sign Out</a>
+    </div>
+  </div>
+
+  <!-- ── Main content ── -->
+  <div class="main">
+
+    <!-- Top bar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>Good Morning, <em>Admin</em> 🌸</h2>
+        <p id="todayDate">Loading date...</p>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;">
+        <button class="refresh-btn" onclick="loadDashboard()">↻ Refresh</button>
+        <div class="admin-pill">✦ Admin Panel</div>
+      </div>
+    </div>
+
+    <!-- Page content -->
+    <div class="content">
+
+      <!-- ── Stats row ── -->
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">Today's Bookings</div>
+          <div class="stat-num rose" id="stat-today"><span class="loading"></span></div>
+          <div class="stat-change" id="stat-today-change">Loading...</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Total Clients</div>
+          <div class="stat-num" id="stat-clients"><span class="loading"></span></div>
+          <div class="stat-change" id="stat-clients-change">Loading...</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Confirmed Today</div>
+          <div class="stat-num" id="stat-confirmed"><span class="loading"></span></div>
+          <div class="stat-change warn" id="stat-confirmed-change">Loading...</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Pending Today</div>
+          <div class="stat-num" id="stat-pending"><span class="loading"></span></div>
+          <div class="stat-change danger" id="stat-pending-change">Loading...</div>
+        </div>
+      </div>
+
+      <!-- ── Today's appointments table ── -->
+      <div id="appts">
+        <div class="section-head">
+          <h3>Today's Appointments</h3>
+          <div class="date-filter">
+            <input type="date" id="dateFilter" onchange="filterByDate()"/>
+            <button class="filter-btn" onclick="filterByDate()">Filter</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Ref</th>
+                <th>Client</th>
+                <th>Service</th>
+                <th>Stylist</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="apptBody">
+              <tr>
+                <td colspan="7">
+                  <div class="empty-state">
+                    <span class="empty-icon">⏳</span>Loading appointments...
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── Two panels: Stylists + Reviews ── -->
+      <div class="two-grid">
+
+        <!-- Stylist schedule -->
+        <div class="panel">
+          <h4>Stylist Schedule</h4>
+          <div id="stylistList">
+            <div class="empty-state"><span class="empty-icon">⏳</span>Loading stylists...</div>
+          </div>
+        </div>
+
+        <!-- Recent reviews (static) -->
+        <div class="panel">
+          <h4>Recent Reviews ✦</h4>
+          <div class="review-item">
+            <div class="review-name">Nimal Kumara</div>
+            <div class="review-stars">★★★★★</div>
+            <div class="review-text">"Amaya did an exceptional job. The whole experience felt truly luxurious."</div>
+          </div>
+          <div class="review-item">
+            <div class="review-name">Sithumi Rajapaksa</div>
+            <div class="review-stars">★★★★</div>
+            <div class="review-text">"Loved the nail artistry. Very clean, very professional, very Lumière."</div>
+          </div>
+          <div class="review-item">
+            <div class="review-name">Priya Mendis</div>
+            <div class="review-stars">★★★★★</div>
+            <div class="review-text">"The facial was extraordinary. My skin has never felt so alive and radiant."</div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- end content -->
+  </div><!-- end main -->
+
+
+  <!-- ═══════════════════════════════════════
+       CSS STYLES
+  ════════════════════════════════════════ -->
+  <style>
+
+    /* ── Reset ── */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* ── Colour variables ── */
+    :root {
+      --rose:      #d4a5a0;
+      --rose-deep: #b8817a;
+      --rose-pale: #f7ede8;
+      --blush:     #fdf0ec;
+      --ivory:     #faf7f2;
+      --ink:       #2c2420;
+      --muted:     #9a8f8a;
+      --border:    rgba(180,140,130,0.2);
+      --green:     #6b9e7a;
+      --red:       #b8817a;
+    }
+
+    body {
+      font-family: 'Jost', sans-serif;
+      background: var(--ivory);
+      color: var(--ink);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar navigation ── */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: white;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sb-logo {
+      padding: 32px 28px 28px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      letter-spacing: 5px;
+      color: var(--ink);
+      border-bottom: 1px solid var(--border);
+    }
+    .sb-logo span { color: var(--rose-deep); }
+
+    .sb-section {
+      padding: 22px 0 6px 28px;
+      font-size: 9px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(154,143,138,0.6);
+    }
+
+    .sb-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 28px;
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transition: all 0.3s;
+      border-left: 2px solid transparent;
+    }
+    .sb-link:hover {
+      color: var(--ink);
+      background: var(--blush);
+    }
+    .sb-link.active {
+      color: var(--rose-deep);
+      border-left-color: var(--rose-deep);
+      background: var(--rose-pale);
+    }
+    .sb-link .icon { font-size: 15px; width: 18px; text-align: center; }
+
+    .sb-footer {
+      margin-top: auto;
+      padding: 22px 28px;
+      border-top: 1px solid var(--border);
+    }
+    .sb-user { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    .sb-logout {
+      color: var(--rose-deep);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+
+    /* ── Main content area ── */
+    .main {
+      margin-left: 220px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      padding: 22px 48px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+    }
+    .topbar-left h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      font-weight: 300;
+      color: var(--ink);
+    }
+    .topbar-left h2 em { color: var(--rose-deep); font-style: italic; }
+    .topbar-left p {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      margin-top: 3px;
+    }
+    .admin-pill {
+      background: var(--rose-pale);
+      border: 1.5px solid var(--border);
+      color: var(--rose-deep);
+      padding: 9px 22px;
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+    }
+
+    /* ── Page content ── */
+    .content { padding: 44px 48px; flex: 1; }
+
+    /* ── Stats row ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      margin-bottom: 44px;
+    }
+    .stat {
+      background: white;
+      padding: 28px;
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--rose-deep);
+    }
+    .stat-label {
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 44px;
+      font-weight: 300;
+      color: var(--ink);
+      line-height: 1;
+    }
+    .stat-num.rose { color: var(--rose-deep); }
+    .stat-change {
+      font-size: 11px;
+      color: var(--green);
+      margin-top: 7px;
+      letter-spacing: 0.5px;
+    }
+    .stat-change.warn   { color: #c9a96e; }
+    .stat-change.danger { color: var(--rose-deep); }
+
+    /* Shimmer loading placeholder */
+    .loading {
+      display: inline-block;
+      width: 60px;
+      height: 44px;
+      background: linear-gradient(90deg, var(--blush) 25%, var(--ivory) 50%, var(--blush) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+      border-radius: 4px;
+    }
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ── Section heading row ── */
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .section-head h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px;
+      font-weight: 300;
+      color: var(--ink);
+    }
+    .section-head span {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ── Data table ── */
+    .table-wrap {
+      background: white;
+      border: 1px solid var(--border);
+      margin-bottom: 44px;
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr {
+      background: var(--rose-pale);
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      padding: 14px 22px;
+      text-align: left;
+      font-size: 9px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 400;
+    }
+    td {
+      padding: 15px 22px;
+      border-bottom: 1px solid rgba(180,140,130,0.08);
+      font-size: 13px;
+      color: var(--muted);
+      vertical-align: middle;
+    }
+    td strong { color: var(--ink); font-weight: 400; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--blush); }
+
+    /* Status badges */
+    .badge {
+      display: inline-block;
+      padding: 4px 14px;
+      font-size: 9px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+    .badge.confirmed {
+      background: rgba(107,158,122,0.1);
+      color: var(--green);
+      border: 1px solid rgba(107,158,122,0.2);
+    }
+    .badge.pending {
+      background: var(--rose-pale);
+      color: var(--rose-deep);
+      border: 1px solid var(--border);
+    }
+    .badge.cancelled {
+      background: rgba(184,129,122,0.08);
+      color: var(--rose-deep);
+      border: 1px solid rgba(184,129,122,0.2);
+    }
+
+    /* Action buttons */
+    .act-btn {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      padding: 5px 14px;
+      cursor: pointer;
+      font-family: 'Jost', sans-serif;
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      transition: all 0.3s;
+      margin-right: 6px;
+    }
+    .act-btn:hover        { border-color: var(--rose-deep); color: var(--rose-deep); }
+    .act-btn.cancel:hover { border-color: var(--rose);      color: var(--rose); }
+
+    /* Empty / loading state inside table */
+    .empty-state {
+      padding: 48px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 2;
+    }
+    .empty-state .empty-icon {
+      font-size: 36px;
+      display: block;
+      margin-bottom: 12px;
+      opacity: 0.4;
+    }
+
+    /* ── Two-column grid ── */
+    .two-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 44px;
+    }
+    .panel {
+      background: white;
+      padding: 32px;
+      border: 1px solid var(--border);
+    }
+    .panel h4 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 300;
+      color: var(--ink);
+      margin-bottom: 26px;
+    }
+
+    /* ── Stylist schedule rows ── */
+    .stylist-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(180,140,130,0.1);
+    }
+    .stylist-row:last-child { border-bottom: none; }
+    .av-circle {
+      width: 40px; height: 40px;
+      border: 1.5px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      background: var(--blush);
+    }
+    .stylist-info strong {
+      display: block;
+      font-size: 13px;
+      color: var(--ink);
+      font-weight: 400;
+      margin-bottom: 2px;
+    }
+    .stylist-info span { font-size: 11px; color: var(--muted); }
+    .appt-count {
+      margin-left: auto;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      color: var(--rose-deep);
+    }
+    .availability-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+    }
+    .dot-available { background: #6b9e7a; }
+    .dot-busy      { background: #c9a96e; }
+    .dot-full      { background: var(--rose-deep); }
+
+    /* ── Review items ── */
+    .review-item {
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(180,140,130,0.1);
+    }
+    .review-item:last-child { border-bottom: none; }
+    .review-name  { font-size: 13px; color: var(--ink); margin-bottom: 3px; }
+    .review-stars { color: var(--rose-deep); font-size: 12px; margin-bottom: 6px; }
+    .review-text  { font-size: 12px; color: var(--muted); line-height: 1.7; font-style: italic; }
+
+    /* Refresh button */
+    .refresh-btn {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--muted);
+      padding: 8px 18px;
+      font-family: 'Jost', sans-serif;
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .refresh-btn:hover { border-color: var(--rose-deep); color: var(--rose-deep); }
+
+    /* Date filter */
+    .date-filter { display: flex; align-items: center; gap: 12px; }
+    .date-filter input {
+      padding: 8px 12px;
+      border: 1.5px solid var(--border);
+      background: white;
+      font-family: 'Jost', sans-serif;
+      font-size: 12px;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    .date-filter input:focus { border-color: var(--rose-deep); }
+    .filter-btn {
+      background: var(--rose-deep);
+      color: white;
+      border: none;
+      padding: 8px 18px;
+      font-family: 'Jost', sans-serif;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .filter-btn:hover { background: var(--rose); }
+
+  </style>
+
+
+  <!-- ═══════════════════════════════════════
+       JAVASCRIPT
+  ════════════════════════════════════════ -->
+  <script>
+
+    // Backend URL
+    const API   = 'http://localhost:5000';
+    const token = () => localStorage.getItem('token');
+
+    // Show today's date and set the date filter to today
+    const today   = new Date();
+    const dateStr = today.toISOString().split('T')[0];
+    document.getElementById('todayDate').textContent =
+      today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+      + ' · Kandy, Sri Lanka';
+    document.getElementById('dateFilter').value = dateStr;
+
+    // ── Load everything on the dashboard ──
+    async function loadDashboard() {
+      await Promise.all([loadStats(), loadAppointments(dateStr), loadStylists()]);
+    }
+
+    // ── Load the 4 stat cards ──
+    async function loadStats() {
+      try {
+        const res   = await fetch(API + '/api/admin/stats', {
+          headers: { 'Authorization': 'Bearer ' + token() }
+        });
+        const stats = await res.json();
+
+        document.getElementById('stat-today').textContent     = stats.today_bookings  ?? '0';
+        document.getElementById('stat-clients').textContent   = stats.total_clients   ?? '0';
+        document.getElementById('stat-confirmed').textContent = stats.confirmed_today ?? '0';
+        document.getElementById('stat-pending').textContent   = stats.pending_today   ?? '0';
+
+        const t   = stats.today_bookings  || 0;
+        const c   = stats.confirmed_today || 0;
+        const p   = stats.pending_today   || 0;
+        const pct = t > 0 ? Math.round((c / t) * 100) : 0;
+
+        document.getElementById('stat-today-change').textContent     = t + ' appointment' + (t !== 1 ? 's' : '') + ' scheduled';
+        document.getElementById('stat-clients-change').textContent   = (stats.total_clients || 0) + ' registered clients';
+        document.getElementById('stat-confirmed-change').textContent = pct + '% of today confirmed';
+        document.getElementById('stat-pending-change').textContent   = p > 0 ? p + ' require' + (p === 1 ? 's' : '') + ' action' : 'All caught up ✦';
+
+      } catch (err) {
+        ['stat-today','stat-clients','stat-confirmed','stat-pending'].forEach(function(id) {
+          document.getElementById(id).textContent = '—';
+        });
+        document.getElementById('stat-today-change').textContent = 'Backend offline';
+      }
+    }
+
+    // ── Load appointments table ──
+    async function loadAppointments(date) {
+      const tbody = document.getElementById('apptBody');
+      tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><span class="empty-icon">⏳</span>Loading...</div></td></tr>';
+
+      try {
+        const url = date
+          ? API + '/api/admin/appointments?date=' + date
+          : API + '/api/admin/appointments';
+
+        const res   = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token() } });
+        const appts = await res.json();
+        tbody.innerHTML = '';
+
+        if (!appts.length) {
+          tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><span class="empty-icon">📅</span>No appointments found for this date.</div></td></tr>';
+          return;
+        }
+
+        appts.forEach(function(a, i) {
+          const tr  = document.createElement('tr');
+          const ref = a.ref || 'LM' + String(a.id).padStart(3, '0');
+          tr.innerHTML =
+            '<td><strong>' + ref + '</strong></td>' +
+            '<td><strong>' + a.client + '</strong></td>' +
+            '<td>' + a.service + '</td>' +
+            '<td>' + (a.stylist || 'Any') + '</td>' +
+            '<td><strong>' + a.time + '</strong></td>' +
+            '<td><span class="badge ' + a.status + '" id="b' + i + '">' + capitalize(a.status) + '</span></td>' +
+            '<td>' +
+              '<button class="act-btn" onclick="setStatus(' + a.id + ',\'confirmed\',\'b' + i + '\')">Confirm</button>' +
+              '<button class="act-btn cancel" onclick="setStatus(' + a.id + ',\'cancelled\',\'b' + i + '\')">Cancel</button>' +
+            '</td>';
+          tbody.appendChild(tr);
+        });
+
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><span class="empty-icon">⚠️</span>Could not load appointments. Make sure backend is running.</div></td></tr>';
+      }
+    }
+
+    // ── Load stylist schedule ──
+    async function loadStylists() {
+      const container = document.getElementById('stylistList');
+      container.innerHTML = '<div class="empty-state"><span class="empty-icon">⏳</span>Loading...</div>';
+
+      try {
+        const date = document.getElementById('dateFilter').value || dateStr;
+        const res  = await fetch(API + '/api/admin/stylists?date=' + date, {
+          headers: { 'Authorization': 'Bearer ' + token() }
+        });
+        const data     = await res.json();
+        const stylists = Array.isArray(data) ? data : (data.stylists || []);
+        const totalAppts = data.total_day_appts || 0;
+        const unassigned = data.unassigned_count || 0;
+
+        if (!stylists.length) {
+          container.innerHTML = '<div class="empty-state">No stylists found.</div>';
+          return;
+        }
+
+        container.innerHTML = '';
+
+        if (totalAppts > 0) {
+          const summary = document.createElement('div');
+          summary.style.cssText = 'padding:10px 0 18px;font-size:12px;color:var(--muted);letter-spacing:1px;border-bottom:1px solid var(--border);margin-bottom:4px;';
+          summary.innerHTML = 'Total appointments today: <strong style="color:var(--rose-deep)">' + totalAppts + '</strong>' +
+            (unassigned > 0 ? ' &nbsp;·&nbsp; Unassigned: <strong style="color:var(--muted)">' + unassigned + '</strong>' : '');
+          container.appendChild(summary);
+        }
+
+        const icons = {
+          'Amaya Silva':        '✂️',
+          'Kavya Perera':       '🎨',
+          'Nisha Fernando':     '💅',
+          'Dulani Jayasinghe':  '🧖',
+          'Rashini Mendis':     '👁️',
+          'Tharushi Bandara':   '✂️',
+          'Malini Wickrama':    '👰',
+          'Sachini Dias':       '🧖',
+          'Unassigned':         '📋'
+        };
+
+        stylists.forEach(function(s) {
+          const count = s.today_appointments;
+          let dotClass, statusText;
+
+          if (!s.available || s.availability === 'unavailable') {
+            dotClass   = 'dot-full';
+            statusText = 'Not Available';
+          } else if (s.availability === 'fully_booked') {
+            dotClass   = 'dot-full';
+            statusText = 'Fully Booked · ' + count + ' appts';
+          } else if (s.availability === 'busy') {
+            dotClass   = 'dot-busy';
+            statusText = 'Busy · ' + count + ' appointments';
+          } else {
+            dotClass   = 'dot-available';
+            statusText = count > 0
+              ? s.specialty + ' · ' + count + ' appointment' + (count !== 1 ? 's' : '') + ' today'
+              : s.specialty + ' · Available Now';
+          }
+
+          const icon = icons[s.name] || '💆';
+          const row  = document.createElement('div');
+          row.className = 'stylist-row';
+          row.innerHTML =
+            '<div class="av-circle">' + icon + '</div>' +
+            '<div class="stylist-info">' +
+              '<strong>' + s.name + '</strong>' +
+              '<span><span class="availability-dot ' + dotClass + '"></span>' + statusText + '</span>' +
+            '</div>' +
+            '<div class="appt-count">' + count + '</div>';
+          container.appendChild(row);
+        });
+
+      } catch (err) {
+        container.innerHTML = '<div class="empty-state"><span class="empty-icon">⚠️</span>Could not load stylists. Make sure backend is running.</div>';
+      }
+    }
+
+    // ── Update appointment status ──
+    async function setStatus(id, status, badgeId) {
+      try {
+        const res = await fetch(API + '/api/admin/appointments/' + id, {
+          method:  'PUT',
+          headers: {
+            'Content-Type':  'application/json',
+            'Authorization': 'Bearer ' + token()
+          },
+          body: JSON.stringify({ status })
+        });
+
+        if (res.ok) {
+          const badge       = document.getElementById(badgeId);
+          badge.className   = 'badge ' + status;
+          badge.textContent = capitalize(status);
+          loadStats();
+        }
+      } catch (err) {
+        alert('Could not update status. Check backend connection.');
+      }
+    }
+
+    // Filter appointments when the date picker changes
+    function filterByDate() {
+      const date = document.getElementById('dateFilter').value;
+      loadAppointments(date);
+    }
+
+    // Capitalise first letter of a string
+    function capitalize(str) {
+      if (!str) return '';
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    // Auto-refresh every 60 seconds
+    setInterval(loadDashboard, 60000);
+
+    // Initial load
+    loadDashboard();
+
+  </script>
+</body>
+</html>

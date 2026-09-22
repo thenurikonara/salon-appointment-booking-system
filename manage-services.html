@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LUMIÈRE — Manage Services</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- ══════════════════════════════
+     SIDEBAR
+══════════════════════════════ -->
+<div class="sidebar">
+  <div class="sb-logo">LUMI<span>È</span>RE</div>
+
+  <div class="sb-section">Navigation</div>
+  <a href="admin.html"             class="sb-link"><span class="icon">◈</span> Dashboard</a>
+  <a href="manage-appts.html"      class="sb-link"><span class="icon">◷</span> Appointments</a>
+  <a href="manage-services.html"   class="sb-link active"><span class="icon">◇</span> Services</a>
+  <a href="manage-users.html"      class="sb-link"><span class="icon">○</span> Customers</a>
+  <a href="manage-stylists.html"   class="sb-link"><span class="icon">✦</span> Stylists</a>
+
+  <div class="sb-section">Reports</div>
+  <a href="reports-reviews.html"   class="sb-link"><span class="icon">★</span> Reviews</a>
+  <a href="reports-analytics.html" class="sb-link"><span class="icon">◇</span> Analytics</a>
+  <a href="settings.html"          class="sb-link"><span class="icon">○</span> Settings</a>
+
+  <div class="sb-footer">
+    <div class="sb-user">Admin Account</div>
+    <a href="login.html" class="sb-logout">← Sign Out</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     MAIN CONTENT
+══════════════════════════════ -->
+<div class="main">
+
+  <div class="topbar">
+    <div>
+      <h2>Manage <em>Services</em></h2>
+      <p>Add, edit, or remove salon services</p>
+    </div>
+    <button class="btn-primary" style="width:auto;padding:11px 24px;" onclick="openModal()">+ Add Service</button>
+  </div>
+
+  <div class="content">
+
+    <!-- Stat Cards -->
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Total Services</div>
+        <div class="stat-num rose" id="s-total">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Hair Services</div>
+        <div class="stat-num" id="s-hair">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Nail Services</div>
+        <div class="stat-num" id="s-nails">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Skin &amp; Special</div>
+        <div class="stat-num" id="s-other">—</div>
+      </div>
+    </div>
+
+    <!-- Category Filter Tabs -->
+    <div class="filter-tabs">
+      <button class="tab-btn active"  onclick="filterServices('all',     this)">All Services</button>
+      <button class="tab-btn"         onclick="filterServices('hair',    this)">Hair</button>
+      <button class="tab-btn"         onclick="filterServices('nails',   this)">Nails</button>
+      <button class="tab-btn"         onclick="filterServices('skin',    this)">Skin</button>
+      <button class="tab-btn"         onclick="filterServices('special', this)">Special</button>
+    </div>
+
+    <!-- Service Cards Grid (populated by JS) -->
+    <div class="services-grid" id="servicesGrid">
+      <div class="empty-state" style="grid-column:1/-1">
+        <span class="empty-icon">⏳</span>Loading services...
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     ADD / EDIT MODAL
+══════════════════════════════ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="modalTitle">Add New <em>Service</em></h3>
+    <p class="modal-sub">Fill in the service details below.</p>
+
+    <div id="modalMsg" class="msg-box"></div>
+
+    <input type="hidden" id="m-id"/>
+
+    <div class="field-wrap">
+      <label class="field-label">Service Name</label>
+      <input class="field-input" id="m-name" type="text" placeholder="e.g. Hair Cut &amp; Style"/>
+    </div>
+
+    <div class="two-col">
+      <div class="field-wrap">
+        <label class="field-label">Category</label>
+        <select class="field-select-m" id="m-category">
+          <option value="hair">Hair</option>
+          <option value="nails">Nails</option>
+          <option value="skin">Skin</option>
+          <option value="special">Special</option>
+        </select>
+      </div>
+      <div class="field-wrap">
+        <label class="field-label">Duration (minutes)</label>
+        <input class="field-input" id="m-duration" type="number" placeholder="60"/>
+      </div>
+    </div>
+
+    <div class="field-wrap">
+      <label class="field-label">Price (LKR)</label>
+      <input class="field-input" id="m-price" type="number" placeholder="1500"/>
+    </div>
+
+    <div class="field-wrap">
+      <label class="field-label">Description</label>
+      <textarea class="field-textarea" id="m-desc" placeholder="Brief description of the service..."></textarea>
+    </div>
+
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" id="saveBtn" onclick="saveService()">Add Service</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════
+     CSS
+══════════════════════════════ -->
+<style>
+
+  /* ── Reset & Base ── */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --rose:      #d4a5a0;
+    --rose-deep: #b8817a;
+    --rose-pale: #f7ede8;
+    --blush:     #fdf0ec;
+    --ivory:     #faf7f2;
+    --ink:       #2c2420;
+    --muted:     #9a8f8a;
+    --border:    rgba(180,140,130,0.2);
+    --green:     #6b9e7a;
+  }
+
+  body {
+    font-family: 'Jost', sans-serif;
+    background: var(--ivory);
+    color: var(--ink);
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ══════════════════════════════
+     SIDEBAR
+  ══════════════════════════════ */
+  .sidebar {
+    width: 220px;
+    background: white;
+    border-right: 1px solid var(--border);
+    position: fixed;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .sb-logo {
+    padding: 32px 28px 28px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    letter-spacing: 5px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sb-logo span { color: var(--rose-deep); }
+
+  .sb-section {
+    padding: 22px 0 6px 28px;
+    font-size: 9px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    opacity: 0.6;
+  }
+
+  .sb-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 28px;
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-left: 2px solid transparent;
+    transition: all 0.3s;
+  }
+  .sb-link:hover  { color: var(--ink); background: var(--blush); }
+  .sb-link.active { color: var(--rose-deep); background: var(--rose-pale); border-left-color: var(--rose-deep); }
+  .sb-link .icon  { font-size: 15px; width: 18px; text-align: center; }
+
+  .sb-footer {
+    margin-top: auto;
+    padding: 22px 28px;
+    border-top: 1px solid var(--border);
+  }
+  .sb-user   { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .sb-logout { color: var(--rose-deep); font-size: 11px; letter-spacing: 2px; text-decoration: none; text-transform: uppercase; }
+
+  /* ══════════════════════════════
+     MAIN AREA
+  ══════════════════════════════ */
+  .main {
+    margin-left: 220px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .topbar {
+    padding: 22px 48px;
+    border-bottom: 1px solid var(--border);
+    background: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .topbar h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 300;
+  }
+  .topbar h2 em { color: var(--rose-deep); font-style: italic; }
+  .topbar p     { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  .content { padding: 44px 48px; }
+
+  /* ══════════════════════════════
+     STAT CARDS
+  ══════════════════════════════ */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 36px;
+  }
+
+  .stat {
+    background: white;
+    padding: 24px 28px;
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--rose-deep);
+  }
+  .stat-label {
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 40px;
+    font-weight: 300;
+    line-height: 1;
+  }
+  .stat-num.rose { color: var(--rose-deep); }
+
+  /* ══════════════════════════════
+     CATEGORY TABS
+  ══════════════════════════════ */
+  .filter-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+  }
+
+  .tab-btn {
+    padding: 12px 24px;
+    background: transparent;
+    border: none;
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.3s;
+  }
+  .tab-btn:hover  { color: var(--rose-deep); }
+  .tab-btn.active { color: var(--rose-deep); border-bottom-color: var(--rose-deep); }
+
+  /* ══════════════════════════════
+     SERVICE CARDS GRID
+  ══════════════════════════════ */
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 44px;
+  }
+
+  .service-card {
+    background: white;
+    border: 1px solid var(--border);
+    padding: 28px;
+    transition: all 0.3s;
+    position: relative;
+  }
+  .service-card:hover {
+    box-shadow: 0 8px 28px rgba(180,140,130,0.12);
+    transform: translateY(-2px);
+  }
+
+  .sc-category {
+    font-size: 9px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--rose);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sc-category::before { content: ''; width: 20px; height: 1px; background: var(--rose); }
+
+  .sc-icon  { font-size: 28px; margin-bottom: 14px; display: block; }
+  .sc-name  { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 300; margin-bottom: 8px; }
+  .sc-desc  { font-size: 12px; line-height: 1.8; color: var(--muted); margin-bottom: 18px; }
+
+  .sc-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .sc-price    { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--rose-deep); }
+  .sc-duration { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+
+  .sc-actions { display: flex; gap: 8px; margin-top: 16px; }
+  .act-btn {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    padding: 6px 16px;
+    cursor: pointer;
+    font-family: 'Jost', sans-serif;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    flex: 1;
+    text-align: center;
+    transition: all 0.3s;
+  }
+  .act-btn:hover        { border-color: var(--rose-deep); color: var(--rose-deep); }
+  .act-btn.danger:hover { border-color: #b8817a; color: #b8817a; }
+
+  .empty-state { padding: 60px; text-align: center; color: var(--muted); font-size: 13px; background: white; border: 1px solid var(--border); }
+  .empty-icon  { font-size: 36px; display: block; margin-bottom: 12px; opacity: 0.4; }
+
+  /* ══════════════════════════════
+     BUTTONS
+  ══════════════════════════════ */
+  .btn-primary {
+    background: var(--rose-deep);
+    color: white;
+    border: none;
+    padding: 13px 28px;
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .btn-primary:hover { background: var(--rose); }
+
+  .btn-secondary {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+    padding: 13px 28px;
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .btn-secondary:hover { border-color: var(--ink); color: var(--ink); }
+
+  /* ══════════════════════════════
+     MODAL
+  ══════════════════════════════ */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(44,36,32,0.4);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: white;
+    width: 560px;
+    padding: 44px;
+    border: 1px solid var(--border);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 300;
+    margin-bottom: 6px;
+  }
+  .modal h3 em  { color: var(--rose-deep); font-style: italic; }
+  .modal-sub    { font-size: 13px; color: var(--muted); margin-bottom: 32px; }
+
+  .field-wrap  { margin-bottom: 22px; }
+  .field-label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .field-input,
+  .field-select-m,
+  .field-textarea {
+    width: 100%;
+    padding: 12px 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1.5px solid var(--border);
+    color: var(--ink);
+    font-family: 'Jost', sans-serif;
+    font-size: 14px;
+    outline: none;
+    caret-color: var(--rose-deep);
+  }
+  .field-input:focus,
+  .field-select-m:focus,
+  .field-textarea:focus       { border-bottom-color: var(--rose-deep); }
+  .field-input::placeholder,
+  .field-textarea::placeholder { color: rgba(154,143,138,0.45); }
+  .field-textarea { resize: none; height: 70px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
+
+  .modal-btns { display: flex; gap: 12px; margin-top: 32px; }
+  .modal-btns .btn-primary { flex: 1; }
+
+  .msg-box {
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    border-left: 2.5px solid;
+    display: none;
+  }
+  .msg-box.error   { border-color: var(--rose);  background: rgba(212,165,160,0.1); color: var(--rose-deep); display: block; }
+  .msg-box.success { border-color: #82b89a; background: rgba(168,181,160,0.1);  color: #4a8060;       display: block; }
+
+</style>
+
+
+<!-- ══════════════════════════════
+     JAVASCRIPT
+══════════════════════════════ -->
+<script>
+
+  const API   = 'http://localhost:5000';
+  const token = () => localStorage.getItem('token');
+
+  let allServices = [];
+  let editingId   = null;
+
+  const categoryIcons = { hair: '✂️', nails: '💅', skin: '🧖', special: '👰' };
+
+  /* ── Fetch all services from backend ── */
+  async function loadServices() {
+    try {
+      const res = await fetch(`${API}/api/admin/services`, {
+        headers: { 'Authorization': `Bearer ${token()}` }
+      });
+      allServices = await res.json();
+
+      document.getElementById('s-total').textContent = allServices.length;
+      document.getElementById('s-hair').textContent  = allServices.filter(s => s.category === 'hair').length;
+      document.getElementById('s-nails').textContent = allServices.filter(s => s.category === 'nails').length;
+      document.getElementById('s-other').textContent = allServices.filter(s => s.category === 'skin' || s.category === 'special').length;
+
+      renderServices(allServices);
+    } catch (e) {
+      document.getElementById('servicesGrid').innerHTML =
+        '<div class="empty-state" style="grid-column:1/-1"><span class="empty-icon">⚠️</span>Could not load services.</div>';
+    }
+  }
+
+  /* ── Build service cards from array ── */
+  function renderServices(services) {
+    const grid = document.getElementById('servicesGrid');
+    grid.innerHTML = '';
+
+    if (!services.length) {
+      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><span class="empty-icon">◇</span>No services found.</div>';
+      return;
+    }
+
+    services.forEach(s => {
+      const icon = categoryIcons[s.category] || '✦';
+      const card = document.createElement('div');
+      card.className = 'service-card';
+      card.setAttribute('data-cat', s.category);
+      card.innerHTML = `
+        <div class="sc-category">${s.category}</div>
+        <span class="sc-icon">${icon}</span>
+        <div class="sc-name">${s.name}</div>
+        <div class="sc-desc">${s.description || 'No description provided.'}</div>
+        <div class="sc-details">
+          <div class="sc-price">LKR ${Number(s.price).toLocaleString()}</div>
+          <div class="sc-duration">${s.duration} min</div>
+        </div>
+        <div class="sc-actions">
+          <button class="act-btn" onclick="editService(${s.id})">Edit</button>
+          <button class="act-btn danger" onclick="deleteService(${s.id}, '${s.name}')">Delete</button>
+        </div>`;
+      grid.appendChild(card);
+    });
+  }
+
+  /* ── Filter cards by category ── */
+  function filterServices(cat, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const filtered = cat === 'all' ? allServices : allServices.filter(s => s.category === cat);
+    renderServices(filtered);
+  }
+
+  /* ── Open modal for adding a new service ── */
+  function openModal() {
+    editingId = null;
+    document.getElementById('modalTitle').innerHTML  = 'Add New <em>Service</em>';
+    document.getElementById('saveBtn').textContent   = 'Add Service';
+    document.getElementById('m-id').value            = '';
+    document.getElementById('m-name').value          = '';
+    document.getElementById('m-price').value         = '';
+    document.getElementById('m-duration').value      = '';
+    document.getElementById('m-desc').value          = '';
+    document.getElementById('modalMsg').style.display = 'none';
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  /* ── Open modal pre-filled for editing ── */
+  function editService(id) {
+    const s = allServices.find(s => s.id === id);
+    if (!s) return;
+    editingId = id;
+    document.getElementById('modalTitle').innerHTML  = 'Edit <em>Service</em>';
+    document.getElementById('saveBtn').textContent   = 'Save Changes';
+    document.getElementById('m-id').value            = s.id;
+    document.getElementById('m-name').value          = s.name;
+    document.getElementById('m-category').value      = s.category;
+    document.getElementById('m-price').value         = s.price;
+    document.getElementById('m-duration').value      = s.duration;
+    document.getElementById('m-desc').value          = s.description || '';
+    document.getElementById('modalMsg').style.display = 'none';
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  /* ── Close the modal ── */
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+    editingId = null;
+  }
+
+  /* ── Save (POST if new, PUT if editing) ── */
+  async function saveService() {
+    const name     = document.getElementById('m-name').value.trim();
+    const category = document.getElementById('m-category').value;
+    const price    = document.getElementById('m-price').value;
+    const duration = document.getElementById('m-duration').value;
+    const desc     = document.getElementById('m-desc').value.trim();
+    const msg      = document.getElementById('modalMsg');
+
+    if (!name || !price) {
+      msg.className   = 'msg-box error';
+      msg.textContent = 'Name and price are required.';
+      return;
+    }
+
+    const body = {
+      name,
+      category,
+      price:       parseFloat(price),
+      duration:    parseInt(duration) || 60,
+      description: desc
+    };
+
+    try {
+      let res;
+      if (editingId) {
+        res = await fetch(`${API}/api/admin/services/${editingId}`, {
+          method:  'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token()}` },
+          body:    JSON.stringify(body)
+        });
+      } else {
+        res = await fetch(`${API}/api/admin/services`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token()}` },
+          body:    JSON.stringify(body)
+        });
+      }
+
+      const data = await res.json();
+      if (res.ok) {
+        msg.className   = 'msg-box success';
+        msg.textContent = editingId ? 'Service updated! ✦' : 'Service added! ✦';
+        setTimeout(() => { closeModal(); loadServices(); }, 1400);
+      } else {
+        msg.className   = 'msg-box error';
+        msg.textContent = data.error || 'Failed to save service.';
+      }
+    } catch (e) {
+      msg.className   = 'msg-box error';
+      msg.textContent = 'Cannot connect to backend.';
+    }
+  }
+
+  /* ── Delete a service after confirmation ── */
+  async function deleteService(id, name) {
+    if (!confirm(`Delete "${name}"?\nThis cannot be undone.`)) return;
+    try {
+      const res = await fetch(`${API}/api/admin/services/${id}`, {
+        method:  'DELETE',
+        headers: { 'Authorization': `Bearer ${token()}` }
+      });
+      if (res.ok) loadServices();
+      else alert('Failed to delete service.');
+    } catch (e) {
+      alert('Cannot connect to backend.');
+    }
+  }
+
+  /* ── Close modal on overlay click ── */
+  document.getElementById('modalOverlay').addEventListener('click', function (e) {
+    if (e.target === this) closeModal();
+  });
+
+  loadServices();
+
+</script>
+</body>
+</html>

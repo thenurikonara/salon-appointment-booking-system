@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LUMIÈRE — Manage Users</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- ══════════════════════════════
+     SIDEBAR
+══════════════════════════════ -->
+<div class="sidebar">
+  <div class="sb-logo">LUMI<span>È</span>RE</div>
+
+  <div class="sb-section">Navigation</div>
+  <a href="admin.html"             class="sb-link"><span class="icon">◈</span> Dashboard</a>
+  <a href="manage-appts.html"      class="sb-link"><span class="icon">◷</span> Appointments</a>
+  <a href="manage-services.html"   class="sb-link"><span class="icon">◇</span> Services</a>
+  <a href="manage-users.html"      class="sb-link active"><span class="icon">○</span> Customers</a>
+  <a href="manage-stylists.html"   class="sb-link"><span class="icon">✦</span> Stylists</a>
+
+  <div class="sb-section">Reports</div>
+  <a href="reports-reviews.html"   class="sb-link"><span class="icon">★</span> Reviews</a>
+  <a href="reports-analytics.html" class="sb-link"><span class="icon">◇</span> Analytics</a>
+  <a href="settings.html"          class="sb-link"><span class="icon">○</span> Settings</a>
+
+  <div class="sb-footer">
+    <div class="sb-user">Admin Account</div>
+    <a href="login.html" class="sb-logout">← Sign Out</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     MAIN CONTENT
+══════════════════════════════ -->
+<div class="main">
+
+  <div class="topbar">
+    <div>
+      <h2>Manage <em>Users</em></h2>
+      <p>View and manage all registered customers</p>
+    </div>
+    <button class="btn-primary" style="width:auto;padding:11px 24px;" onclick="openAddModal()">+ Add User</button>
+  </div>
+
+  <div class="content">
+
+    <!-- Stat cards -->
+    <div class="stats">
+      <div class="stat"><div class="stat-label">Total Users</div>   <div class="stat-num rose" id="s-total">—</div></div>
+      <div class="stat"><div class="stat-label">Customers</div>     <div class="stat-num"      id="s-customers">—</div></div>
+      <div class="stat"><div class="stat-label">Active Bookers</div><div class="stat-num"      id="s-active">—</div></div>
+      <div class="stat"><div class="stat-label">Admins</div>        <div class="stat-num"      id="s-admins">—</div></div>
+    </div>
+
+    <!-- Search + role filter -->
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search by name or email..." oninput="filterUsers()"/>
+      </div>
+      <select class="filter-select" id="roleFilter" onchange="filterUsers()">
+        <option value="">All Roles</option>
+        <option value="customer">Customers</option>
+        <option value="admin">Admins</option>
+      </select>
+    </div>
+
+    <!-- Users table -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Role</th>
+            <th>Bookings</th>
+            <th>Joined</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="userBody">
+          <tr><td colspan="7"><div class="empty-state"><span class="empty-icon">⏳</span>Loading users...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     ADD USER MODAL
+══════════════════════════════ -->
+<div class="modal-overlay" id="addModalOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAddModal()">✕</button>
+    <h3>Add New <em>User</em></h3>
+    <p class="modal-sub">Create a new customer or admin account.</p>
+
+    <div id="modalMsg" class="msg-box"></div>
+
+    <div class="two-col">
+      <div class="field-wrap"><label class="field-label">First Name</label><input class="field-input" id="m-fname" type="text" placeholder="Thenuri"/></div>
+      <div class="field-wrap"><label class="field-label">Last Name</label> <input class="field-input" id="m-lname" type="text" placeholder="Konara"/></div>
+    </div>
+
+    <div class="field-wrap"><label class="field-label">Email Address</label><input class="field-input" id="m-email"    type="email"    placeholder="user@email.com"/></div>
+    <div class="field-wrap"><label class="field-label">Phone</label>         <input class="field-input" id="m-phone"    type="tel"      placeholder="+94 77 123 4567"/></div>
+    <div class="field-wrap"><label class="field-label">Password</label>      <input class="field-input" id="m-password" type="password" placeholder="Min. 8 characters"/></div>
+
+    <div class="field-wrap">
+      <label class="field-label">Role</label>
+      <select class="field-select-m" id="m-role">
+        <option value="customer">Customer</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="closeAddModal()">Cancel</button>
+      <button class="btn-primary"   onclick="addUser()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     VIEW CUSTOMER MODAL
+══════════════════════════════ -->
+<div class="modal-overlay" id="viewModalOverlay">
+  <div class="modal" style="width:600px;">
+    <button class="modal-close" onclick="closeViewModal()">✕</button>
+    <div id="viewModalContent">
+      <div class="spinner"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+
+  /* ── Reset & base ── */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --rose: #d4a5a0;
+    --rose-deep: #b8817a;
+    --rose-pale: #f7ede8;
+    --blush: #fdf0ec;
+    --ivory: #faf7f2;
+    --ink: #2c2420;
+    --ink-soft: #5a4e48;
+    --muted: #9a8f8a;
+    --border: rgba(180,140,130,0.2);
+    --green: #6b9e7a;
+  }
+
+  body {
+    font-family: 'Jost', sans-serif;
+    background: var(--ivory);
+    color: var(--ink);
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 220px;
+    background: white;
+    border-right: 1px solid var(--border);
+    position: fixed;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .sb-logo {
+    padding: 32px 28px 28px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    letter-spacing: 5px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sb-logo span { color: var(--rose-deep); }
+
+  .sb-section {
+    padding: 22px 0 6px 28px;
+    font-size: 9px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    opacity: 0.6;
+  }
+
+  .sb-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 28px;
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-left: 2px solid transparent;
+    transition: all 0.3s;
+  }
+  .sb-link:hover  { color: var(--ink); background: var(--blush); }
+  .sb-link.active { color: var(--rose-deep); background: var(--rose-pale); border-left-color: var(--rose-deep); }
+  .sb-link .icon  { font-size: 15px; width: 18px; text-align: center; }
+
+  .sb-footer {
+    margin-top: auto;
+    padding: 22px 28px;
+    border-top: 1px solid var(--border);
+  }
+  .sb-user   { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .sb-logout { color: var(--rose-deep); font-size: 11px; letter-spacing: 2px; text-decoration: none; text-transform: uppercase; }
+
+  /* ══════════════════════════════
+     MAIN AREA
+  ══════════════════════════════ */
+  .main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; }
+
+  .topbar {
+    padding: 22px 48px;
+    border-bottom: 1px solid var(--border);
+    background: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .topbar h2 { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 300; }
+  .topbar h2 em { color: var(--rose-deep); font-style: italic; }
+  .topbar p { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  .content { padding: 44px 48px; }
+
+  /* ══════════════════════════════
+     STAT CARDS
+  ══════════════════════════════ */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 36px;
+  }
+
+  .stat {
+    background: white;
+    padding: 24px 28px;
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--rose-deep);
+  }
+  .stat-label { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .stat-num   { font-family: 'Cormorant Garamond', serif; font-size: 40px; font-weight: 300; line-height: 1; }
+  .stat-num.rose { color: var(--rose-deep); }
+
+  /* ══════════════════════════════
+     SEARCH + FILTER TOOLBAR
+  ══════════════════════════════ */
+  .toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  .search-wrap { position: relative; flex: 1; min-width: 240px; }
+  .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--muted); }
+  .search-wrap input {
+    width: 100%;
+    padding: 11px 16px 11px 40px;
+    border: 1.5px solid var(--border);
+    background: white;
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.3s;
+  }
+  .search-wrap input:focus       { border-color: var(--rose-deep); }
+  .search-wrap input::placeholder{ color: var(--muted); }
+
+  .filter-select {
+    padding: 11px 16px;
+    border: 1.5px solid var(--border);
+    background: white;
+    font-family: 'Jost', sans-serif;
+    font-size: 12px;
+    color: var(--ink);
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    min-width: 160px;
+  }
+  .filter-select:focus { border-color: var(--rose-deep); }
+
+  /* ══════════════════════════════
+     USERS TABLE
+  ══════════════════════════════ */
+  .table-wrap { background: white; border: 1px solid var(--border); overflow: hidden; }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  thead tr { background: var(--rose-pale); border-bottom: 1px solid var(--border); }
+  th {
+    padding: 14px 20px;
+    text-align: left;
+    font-size: 9px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  td {
+    padding: 14px 20px;
+    border-bottom: 1px solid rgba(180,140,130,0.08);
+    font-size: 13px;
+    color: var(--muted);
+    vertical-align: middle;
+  }
+  td strong { color: var(--ink); font-weight: 400; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--blush); }
+
+  .avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--rose-pale);
+    border: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: var(--rose-deep);
+    flex-shrink: 0;
+    font-family: 'Cormorant Garamond', serif;
+  }
+
+  .user-cell { display: flex; align-items: center; gap: 12px; }
+  .user-info strong { display: block; color: var(--ink); font-size: 13px; font-weight: 400; }
+  .user-info span   { font-size: 11px; color: var(--muted); }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 12px;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+  .badge.customer { background: var(--rose-pale); color: var(--rose-deep); border: 1px solid var(--border); }
+  .badge.admin    { background: rgba(107,158,122,0.1); color: var(--green); border: 1px solid rgba(107,158,122,0.2); }
+
+  .act-btn {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    padding: 5px 14px;
+    cursor: pointer;
+    font-family: 'Jost', sans-serif;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-right: 6px;
+    transition: all 0.3s;
+  }
+  .act-btn:hover        { border-color: var(--rose-deep); color: var(--rose-deep); }
+  .act-btn.danger:hover { border-color: #b8817a; color: #b8817a; }
+
+  .empty-state { padding: 60px; text-align: center; color: var(--muted); font-size: 13px; }
+  .empty-icon  { font-size: 36px; display: block; margin-bottom: 12px; opacity: 0.4; }
+
+  /* ══════════════════════════════
+     SHARED BUTTON STYLES
+  ══════════════════════════════ */
+  .btn-primary {
+    background: var(--rose-deep);
+    color: white;
+    border: none;
+    padding: 13px 28px;
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .btn-primary:hover { background: var(--rose); }
+
+  .btn-secondary {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+    padding: 13px 28px;
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .btn-secondary:hover { border-color: var(--ink-soft); color: var(--ink); }
+
+  /* ══════════════════════════════
+     MODALS
+  ══════════════════════════════ */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(44,36,32,0.4);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: white;
+    width: 520px;
+    padding: 44px;
+    border: 1px solid var(--border);
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+  }
+  .modal h3 { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 300; margin-bottom: 6px; }
+  .modal h3 em { color: var(--rose-deep); font-style: italic; }
+  .modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 32px; }
+
+  .modal-close {
+    position: absolute;
+    top: 18px; right: 22px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: var(--muted);
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s;
+  }
+  .modal-close:hover { color: var(--ink); }
+
+  .field-wrap  { margin-bottom: 22px; }
+  .field-label { display: block; font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+
+  .field-input,
+  .field-select-m {
+    width: 100%;
+    padding: 12px 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1.5px solid var(--border);
+    color: var(--ink);
+    font-family: 'Jost', sans-serif;
+    font-size: 14px;
+    outline: none;
+    caret-color: var(--rose-deep);
+  }
+  .field-input:focus,
+  .field-select-m:focus    { border-bottom-color: var(--rose-deep); }
+  .field-input::placeholder{ color: rgba(154,143,138,0.45); }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
+
+  .modal-btns { display: flex; gap: 12px; margin-top: 32px; }
+  .modal-btns .btn-primary { flex: 1; }
+
+  .msg-box { padding: 12px 16px; margin-bottom: 20px; font-size: 13px; border-left: 2.5px solid; display: none; }
+  .msg-box.error   { border-color: var(--rose);  background: rgba(212,165,160,0.1); color: var(--rose-deep); display: block; }
+  .msg-box.success { border-color: #82b89a; background: rgba(168,181,160,0.1);  color: #4a8060;       display: block; }
+
+  /* ── VIEW CUSTOMER MODAL ── */
+  .customer-header {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 28px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .customer-avatar {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--rose-pale);
+    border: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: var(--rose-deep);
+    font-family: 'Cormorant Garamond', serif;
+    flex-shrink: 0;
+  }
+  .customer-name { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 300; }
+  .customer-meta { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+  .info-item { padding: 14px 16px; background: var(--blush); border: 1px solid var(--border); }
+  .info-key  { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+  .info-val  { font-size: 13px; }
+
+  .section-mini-title {
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--rose-deep);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-mini-title::before { content: ''; width: 18px; height: 1px; background: var(--rose-deep); }
+
+  .appt-mini-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+  .appt-mini-table th { padding: 8px 12px; font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); text-align: left; background: var(--rose-pale); font-weight: 400; }
+  .appt-mini-table td { padding: 9px 12px; font-size: 12px; color: var(--muted); border-bottom: 1px solid rgba(180,140,130,0.08); }
+  .appt-mini-table tr:last-child td { border-bottom: none; }
+
+  .mini-badge { display: inline-block; padding: 2px 9px; font-size: 8px; letter-spacing: 2px; text-transform: uppercase; }
+  .mini-badge.confirmed { background: rgba(107,158,122,0.1); color: var(--green); border: 1px solid rgba(107,158,122,0.2); }
+  .mini-badge.pending   { background: var(--rose-pale); color: var(--rose-deep); border: 1px solid var(--border); }
+  .mini-badge.cancelled { background: rgba(180,170,165,0.1); color: var(--muted); border: 1px solid var(--border); }
+
+  .spinner {
+    width: 28px; height: 28px;
+    border: 2px solid var(--border);
+    border-top-color: var(--rose-deep);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 20px auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+</style>
+
+<script>
+  const API   = 'http://localhost:5000';
+  const token = () => localStorage.getItem('token');
+
+  let allUsers = [];
+
+  async function loadUsers() {
+    try {
+      const res  = await fetch(`${API}/api/admin/customers`, {
+        headers: { 'Authorization': `Bearer ${token()}` }
+      });
+      allUsers = await res.json();
+
+      document.getElementById('s-total').textContent     = allUsers.length;
+      document.getElementById('s-customers').textContent = allUsers.filter(u => u.role !== 'admin').length || allUsers.length;
+      document.getElementById('s-active').textContent    = allUsers.filter(u => u.total_bookings > 0).length;
+      document.getElementById('s-admins').textContent    = allUsers.filter(u => u.role === 'admin').length;
+
+      renderUsers(allUsers);
+    } catch (e) {
+      document.getElementById('userBody').innerHTML =
+        '<tr><td colspan="7"><div class="empty-state"><span class="empty-icon">⚠️</span>Could not load users.</div></td></tr>';
+    }
+  }
+
+  function renderUsers(users) {
+    const tbody = document.getElementById('userBody');
+    tbody.innerHTML = '';
+
+    if (!users.length) {
+      tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><span class="empty-icon">👤</span>No users found.</div></td></tr>';
+      return;
+    }
+
+    users.forEach(u => {
+      const initials = ((u.name || '').split(' ').map(n => n[0] || '').join('').substring(0, 2)).toUpperCase();
+      const role     = u.role || 'customer';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <div class="user-cell">
+            <div class="avatar">${initials}</div>
+            <div class="user-info">
+              <strong>${u.name}</strong>
+              <span>#${u.id}</span>
+            </div>
+          </div>
+        </td>
+        <td>${u.email}</td>
+        <td>${u.phone}</td>
+        <td><span class="badge ${role}">${role.charAt(0).toUpperCase() + role.slice(1)}</span></td>
+        <td><strong>${u.total_bookings}</strong></td>
+        <td>${u.joined || '—'}</td>
+        <td>
+          <button class="act-btn" onclick="viewUser(${u.id})">View</button>
+          <button class="act-btn danger" onclick="deleteUser(${u.id}, '${u.name.replace(/'/g, "\\'")}')">Delete</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function filterUsers() {
+    const search   = document.getElementById('searchInput').value.toLowerCase();
+    const role     = document.getElementById('roleFilter').value;
+    const filtered = allUsers.filter(u => {
+      const matchSearch = (u.name || '').toLowerCase().includes(search) || (u.email || '').toLowerCase().includes(search);
+      const matchRole   = !role || (u.role || 'customer') === role;
+      return matchSearch && matchRole;
+    });
+    renderUsers(filtered);
+  }
+
+  async function viewUser(id) {
+    document.getElementById('viewModalContent').innerHTML = '<div class="spinner"></div>';
+    document.getElementById('viewModalOverlay').classList.add('open');
+
+    try {
+      const res = await fetch(`${API}/api/admin/customers/${id}`, {
+        headers: { 'Authorization': `Bearer ${token()}` }
+      });
+      const u   = await res.json();
+
+      const initials = u.name.split(' ').map(n => n[0] || '').join('').substring(0, 2).toUpperCase();
+
+      let apptRows = '';
+      if (u.appointments && u.appointments.length) {
+        apptRows = u.appointments.map(a => `
+          <tr>
+            <td><strong>${a.ref}</strong></td>
+            <td>${a.service}</td>
+            <td>${a.date}</td>
+            <td>${a.time}</td>
+            <td><span class="mini-badge ${a.status}">${a.status}</span></td>
+          </tr>`).join('');
+      } else {
+        apptRows = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--muted);font-size:12px;">No appointments yet.</td></tr>';
+      }
+
+      document.getElementById('viewModalContent').innerHTML = `
+        <div class="customer-header">
+          <div class="customer-avatar">${initials}</div>
+          <div>
+            <div class="customer-name">${u.name}</div>
+            <div class="customer-meta">#${u.id} · Joined ${u.joined}</div>
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-item"><div class="info-key">Email</div>          <div class="info-val">${u.email}</div></div>
+          <div class="info-item"><div class="info-key">Phone</div>          <div class="info-val">${u.phone}</div></div>
+          <div class="info-item"><div class="info-key">Role</div>           <div class="info-val">${u.role}</div></div>
+          <div class="info-item"><div class="info-key">Total Bookings</div> <div class="info-val">${u.total_bookings}</div></div>
+        </div>
+
+        <div class="section-mini-title">Appointment History</div>
+        <table class="appt-mini-table">
+          <thead><tr><th>Ref</th><th>Service</th><th>Date</th><th>Time</th><th>Status</th></tr></thead>
+          <tbody>${apptRows}</tbody>
+        </table>
+
+        <div class="modal-btns" style="margin-top:24px;">
+          <button class="btn-secondary" onclick="closeViewModal()">Close</button>
+          <button class="btn-primary" style="background:#c0534a;"
+            onclick="deleteUser(${u.id},'${u.name.replace(/'/g,"\\'")}');closeViewModal();">
+            Delete User
+          </button>
+        </div>`;
+    } catch (e) {
+      document.getElementById('viewModalContent').innerHTML =
+        '<p style="color:var(--rose-deep);font-size:13px;padding:20px;">Could not load customer details.</p>';
+    }
+  }
+
+  function closeViewModal() { document.getElementById('viewModalOverlay').classList.remove('open'); }
+
+  async function deleteUser(id, name) {
+    if (!confirm(`Delete "${name}"?\nThis will cancel all their appointments.`)) return;
+    try {
+      const res  = await fetch(`${API}/api/admin/customers/${id}`, {
+        method:  'DELETE',
+        headers: { 'Authorization': `Bearer ${token()}` }
+      });
+      const data = await res.json();
+      if (res.ok) { await loadUsers(); }
+      else { alert(data.error || 'Could not delete user.'); }
+    } catch { alert('Cannot connect to backend.'); }
+  }
+
+  function openAddModal() {
+    ['m-fname','m-lname','m-email','m-phone','m-password'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('modalMsg').style.display = 'none';
+    document.getElementById('addModalOverlay').classList.add('open');
+  }
+  function closeAddModal() { document.getElementById('addModalOverlay').classList.remove('open'); }
+
+  async function addUser() {
+    const fn  = document.getElementById('m-fname').value.trim();
+    const ln  = document.getElementById('m-lname').value.trim();
+    const em  = document.getElementById('m-email').value.trim();
+    const ph  = document.getElementById('m-phone').value.trim();
+    const pw  = document.getElementById('m-password').value;
+    const rl  = document.getElementById('m-role').value;
+    const msg = document.getElementById('modalMsg');
+
+    if (!fn || !ln || !em || !ph || !pw) {
+      msg.className   = 'msg-box error';
+      msg.textContent = 'Please fill in all fields.';
+      return;
+    }
+    if (pw.length < 8) {
+      msg.className   = 'msg-box error';
+      msg.textContent = 'Password must be at least 8 characters.';
+      return;
+    }
+
+    try {
+      // AFTER
+        const res  = await fetch(`${API}/api/auth/register`, { 
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ first_name: fn, last_name: ln, email: em, phone: ph, password: pw, role: rl })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        msg.className   = 'msg-box success';
+        msg.textContent = 'User created successfully! ✦';
+        setTimeout(() => { closeAddModal(); loadUsers(); }, 1500);
+      } else {
+        msg.className   = 'msg-box error';
+        msg.textContent = data.error || 'Failed to create user.';
+      }
+    } catch {
+      msg.className   = 'msg-box error';
+      msg.textContent = 'Cannot connect to backend.';
+    }
+  }
+
+  document.getElementById('addModalOverlay').addEventListener('click', function (e) { if (e.target === this) closeAddModal(); });
+  document.getElementById('viewModalOverlay').addEventListener('click', function (e) { if (e.target === this) closeViewModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeAddModal(); closeViewModal(); } });
+
+  loadUsers();
+</script>
+</body>
+</html>

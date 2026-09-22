@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LUMIÈRE — Manage Stylists</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- ══════════════════════════════
+     SIDEBAR
+══════════════════════════════ -->
+<aside class="sidebar">
+  <div class="sb-logo">LUMI<span>È</span>RE</div>
+
+  <div class="sb-section">Management</div>
+  <a href="admin.html"             class="sb-link"><span class="icon">◈</span> Dashboard</a>
+  <a href="manage-appts.html"      class="sb-link"><span class="icon">◷</span> Appointments</a>
+  <a href="manage-services.html"   class="sb-link"><span class="icon">◇</span> Services</a>
+  <a href="manage-users.html"      class="sb-link"><span class="icon">○</span> Customers</a>
+  <a href="manage-stylists.html"   class="sb-link active"><span class="icon">✦</span> Stylists</a>
+
+  <div class="sb-section">Reports</div>
+  <a href="reports-reviews.html"   class="sb-link"><span class="icon">★</span> Reviews</a>
+  <a href="reports-analytics.html" class="sb-link"><span class="icon">◇</span> Analytics</a>
+  <a href="settings.html"          class="sb-link"><span class="icon">○</span> Settings</a>
+
+  <div class="sb-footer">
+    <div class="sb-user" id="adminName">Admin Account</div>
+    <button class="sb-logout" onclick="logout()">Log Out</button>
+  </div>
+</aside>
+
+<!-- ══════════════════════════════
+     MAIN CONTENT
+══════════════════════════════ -->
+<div class="main">
+
+  <div class="top-bar">
+    <h1>Manage <em>Stylists</em></h1>
+    <button class="btn-add" onclick="openAdd()">+ Add Stylist</button>
+  </div>
+
+  <!-- Stat numbers row -->
+  <div class="stats-bar">
+    <div class="stat-item"><div class="s-label">Total Stylists</div>      <div class="s-value" id="statTotal">—</div></div>
+    <div class="stat-item"><div class="s-label">Available Today</div>     <div class="s-value" id="statAvailable">—</div></div>
+    <div class="stat-item"><div class="s-label">Appointments Today</div>  <div class="s-value" id="statAppts">—</div></div>
+    <div class="stat-item"><div class="s-label">Unassigned Today</div>    <div class="s-value" id="statUnassigned">—</div></div>
+  </div>
+
+  <div class="content">
+    <div class="stylists-grid" id="stylistsGrid">
+      <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Loading stylists…</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════
+     ADD / EDIT MODAL
+══════════════════════════════ -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+
+    <p class="modal-eyebrow" id="modalEyebrow">Add new</p>
+    <h2 class="modal-title" id="modalTitle">New Stylist</h2>
+
+    <div class="field-wrap">
+      <label class="field-label">Full Name</label>
+      <input class="field-input" id="mName" placeholder="e.g. Amaya Silva"/>
+      <div class="field-line"></div>
+    </div>
+
+    <div class="field-wrap">
+      <label class="field-label">Specialty</label>
+      <select class="field-select" id="mSpecialty">
+        <option value="Hair Specialist">Hair Specialist</option>
+        <option value="Color Expert">Color Expert</option>
+        <option value="Nail Artist">Nail Artist</option>
+        <option value="Skin & Makeup">Skin & Makeup</option>
+        <option value="Brow & Lash Artist">Brow & Lash Artist</option>
+        <option value="Senior Stylist">Senior Stylist</option>
+        <option value="Bridal Specialist">Bridal Specialist</option>
+        <option value="Skin Therapist">Skin Therapist</option>
+      </select>
+      <div class="field-line"></div>
+    </div>
+
+    <div class="checkbox-row">
+      <input type="checkbox" id="mAvailable" checked/>
+      <label for="mAvailable">Available for bookings</label>
+    </div>
+
+    <div class="modal-msg" id="modalMsg"></div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveStylist()">Save Stylist</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<style>
+
+  /* ── Reset & base ── */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --rose: #d4a5a0;
+    --rose-deep: #b8817a;
+    --rose-pale: #f7ede8;
+    --blush: #fdf0ec;
+    --ivory: #faf7f2;
+    --sage: #a8b5a0;
+    --ink: #2c2420;
+    --ink-soft: #5a4e48;
+    --muted: #9a8f8a;
+    --border: rgba(180,140,130,0.2);
+  }
+
+  body {
+    font-family: 'Jost', sans-serif;
+    background: var(--ivory);
+    color: var(--ink);
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ══════════════════════════════
+     SIDEBAR
+  ══════════════════════════════ */
+  .sidebar {
+    width: 240px;
+    background: white;
+    border-right: 1px solid var(--border);
+    position: fixed;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sb-logo {
+    padding: 28px 28px 20px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    letter-spacing: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sb-logo span { color: var(--rose-deep); }
+
+  .sb-section {
+    font-size: 9px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 22px 28px 8px;
+  }
+
+  .sb-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 28px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .sb-link:hover  { color: var(--rose-deep); background: var(--blush); }
+  .sb-link.active { color: var(--rose-deep); background: var(--rose-pale); border-left-color: var(--rose-deep); }
+  .sb-link .icon  { font-size: 14px; width: 18px; text-align: center; }
+
+  .sb-footer {
+    margin-top: auto;
+    padding: 20px 28px;
+    border-top: 1px solid var(--border);
+  }
+  .sb-user   { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .sb-logout {
+    background: none;
+    border: none;
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--rose-deep);
+    cursor: pointer;
+    padding: 0;
+  }
+
+  /* ══════════════════════════════
+     MAIN AREA
+  ══════════════════════════════ */
+  .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+
+  .top-bar {
+    padding: 20px 44px;
+    border-bottom: 1px solid var(--border);
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .top-bar h1 { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 300; }
+  .top-bar h1 em { color: var(--rose-deep); font-style: italic; }
+
+  .btn-add {
+    background: var(--rose-deep);
+    color: white;
+    border: none;
+    padding: 11px 24px;
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .btn-add:hover { background: var(--rose); }
+
+  /* ══════════════════════════════
+     STATS ROW
+  ══════════════════════════════ */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stat-item { background: white; padding: 18px 28px; }
+  .stat-item .s-label {
+    font-size: 9px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .stat-item .s-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 300;
+  }
+
+  /* ══════════════════════════════
+     STYLIST CARDS GRID
+  ══════════════════════════════ */
+  .content { padding: 36px 44px; }
+
+  .stylists-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+
+  .stylist-card {
+    background: white;
+    border: 1px solid var(--border);
+    padding: 28px;
+    position: relative;
+    transition: box-shadow 0.3s;
+  }
+  .stylist-card:hover { box-shadow: 0 6px 24px rgba(180,140,130,0.12); }
+
+  .stylist-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--rose);
+  }
+  .stylist-card.unavailable { opacity: 0.6; }
+  .stylist-card.unavailable::before { background: rgba(180,140,130,0.3); }
+
+  .stylist-avatar {
+    width: 52px;
+    height: 52px;
+    background: var(--rose-pale);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    color: var(--rose-deep);
+    margin-bottom: 16px;
+  }
+
+  .stylist-name      { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 300; margin-bottom: 4px; }
+  .stylist-specialty { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--rose-deep); margin-bottom: 16px; }
+
+  .stylist-stats { margin-bottom: 20px; }
+  .stylist-stat .val { font-family: 'Cormorant Garamond', serif; font-size: 20px; }
+  .stylist-stat .lbl { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+
+  .avail-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border: 1.5px solid;
+    margin-bottom: 18px;
+  }
+  .avail-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
+
+  .badge-available   { border-color: rgba(168,181,160,0.5); color: #4a7060; }
+  .badge-available::before { background: var(--sage); }
+
+  .badge-unavailable { border-color: rgba(180,140,130,0.3); color: var(--muted); }
+  .badge-unavailable::before { background: rgba(180,140,130,0.4); }
+
+  .badge-busy        { border-color: rgba(212,165,160,0.5); color: var(--rose-deep); }
+  .badge-busy::before { background: var(--rose); }
+
+  .card-actions { display: flex; gap: 8px; }
+  .btn-edit,
+  .btn-toggle {
+    flex: 1;
+    padding: 9px;
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1.5px solid var(--border);
+    background: none;
+    color: var(--muted);
+    transition: all 0.3s;
+  }
+  .btn-edit:hover,
+  .btn-toggle:hover { border-color: var(--rose-deep); color: var(--rose-deep); }
+
+  .loading-state { text-align: center; padding: 80px; grid-column: 1 / -1; }
+  .loading-spinner {
+    display: inline-block;
+    width: 32px; height: 32px;
+    border: 2px solid var(--border);
+    border-top-color: var(--rose-deep);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-state p { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); }
+
+  /* ══════════════════════════════
+     ADD / EDIT MODAL
+  ══════════════════════════════ */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(44,36,32,0.5);
+    backdrop-filter: blur(4px);
+    z-index: 800;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--ivory);
+    width: 460px;
+    padding: 44px;
+    position: relative;
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 18px; right: 22px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 0.3s;
+  }
+  .modal-close:hover { color: var(--rose-deep); }
+
+  .modal-eyebrow { font-size: 10px; letter-spacing: 5px; text-transform: uppercase; color: var(--rose-deep); margin-bottom: 8px; }
+  .modal-title   { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 300; margin-bottom: 28px; }
+
+  .field-wrap  { margin-bottom: 22px; position: relative; }
+  .field-label { display: block; font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+
+  .field-input,
+  .field-select {
+    width: 100%;
+    padding: 12px 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1.5px solid var(--border);
+    color: var(--ink);
+    font-family: 'Jost', sans-serif;
+    font-size: 14px;
+    font-weight: 300;
+    outline: none;
+    appearance: none;
+    caret-color: var(--rose-deep);
+  }
+  .field-input:focus,
+  .field-select:focus { border-bottom-color: var(--rose-deep); }
+
+  .field-line {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1.5px;
+    background: var(--rose-deep);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s ease;
+  }
+  .field-wrap:focus-within .field-line { transform: scaleX(1); }
+
+  .checkbox-row { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+  .checkbox-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--rose-deep); cursor: pointer; }
+  .checkbox-row label { font-size: 13px; color: var(--ink-soft); }
+
+  .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
+
+  .btn-save {
+    flex: 1;
+    background: var(--rose-deep);
+    color: white;
+    border: none;
+    padding: 13px;
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .btn-save:hover { background: var(--rose); }
+
+  .btn-cancel-modal {
+    background: none;
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+    padding: 13px 18px;
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .btn-cancel-modal:hover { border-color: var(--ink-soft); color: var(--ink); }
+
+  .modal-msg {
+    font-size: 12px;
+    margin-top: 12px;
+    padding: 10px 14px;
+    border-left: 2.5px solid;
+    display: none;
+  }
+  .modal-msg.success { border-color: var(--sage); background: rgba(168,181,160,0.1); color: #4a7060; display: block; }
+  .modal-msg.error   { border-color: var(--rose-deep); background: rgba(212,165,160,0.1); color: var(--rose-deep); display: block; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--ink);
+    color: white;
+    padding: 13px 26px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    z-index: 1000;
+    transition: transform 0.4s ease;
+    white-space: nowrap;
+  }
+  .toast.show       { transform: translateX(-50%) translateY(0); }
+  .toast.error-toast{ background: #8b4a45; }
+
+</style>
+
+<script>
+  const API   = 'http://localhost:5000';
+  const token = () => localStorage.getItem('token');
+
+  let editingId   = null;
+  let allStylists = [];
+
+  function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    window.location.href = 'login.html';
+  }
+
+  function initials(name) {
+    return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  }
+
+  async function load() {
+    try {
+      const res  = await fetch(`${API}/api/admin/stylists`, {
+        headers: { 'Authorization': 'Bearer ' + token() }
+      });
+
+      if (res.status === 401 || res.status === 403) { window.location.href = 'login.html'; return; }
+
+      const data  = await res.json();
+      allStylists = Array.isArray(data) ? data : (data.stylists || []);
+
+      const real = allStylists.filter(s => s.name !== 'Unassigned');
+
+      document.getElementById('statTotal').textContent      = real.length;
+      document.getElementById('statAvailable').textContent  = real.filter(s => s.available).length;
+      document.getElementById('statAppts').textContent      = data.total_day_appts  ?? '—';
+      document.getElementById('statUnassigned').textContent = data.unassigned_count ?? '—';
+
+      renderStylists(real);
+    } catch (e) {
+      document.getElementById('stylistsGrid').innerHTML =
+        '<div class="loading-state"><p>Could not load stylists. Check backend.</p></div>';
+    }
+  }
+
+  function renderStylists(list) {
+    const grid = document.getElementById('stylistsGrid');
+    if (!list.length) {
+      grid.innerHTML = '<div class="loading-state"><p>No stylists found.</p></div>';
+      return;
+    }
+    grid.innerHTML = '';
+
+    list.forEach(s => {
+      const avail    = !s.available ? 'unavailable' : (s.availability || 'available');
+      const badgeCls = avail === 'available' ? 'badge-available' : avail === 'busy' ? 'badge-busy' : 'badge-unavailable';
+      const badgeTxt = avail.charAt(0).toUpperCase() + avail.slice(1).replace('_', ' ');
+
+      const card = document.createElement('div');
+      card.className = 'stylist-card' + (s.available ? '' : ' unavailable');
+      card.innerHTML = `
+        <div class="stylist-avatar">${initials(s.name)}</div>
+        <div class="stylist-name">${s.name}</div>
+        <div class="stylist-specialty">${s.specialty || '—'}</div>
+        <div class="avail-badge ${badgeCls}">${badgeTxt}</div>
+        <div class="stylist-stats">
+          <div class="stylist-stat">
+            <div class="val">${s.today_appointments ?? 0}</div>
+            <div class="lbl">Today</div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn-edit"
+            onclick="openEdit(${s.id},'${s.name.replace(/'/g,"\\'")}','${(s.specialty||'').replace(/'/g,"\\'")}',${s.available})">
+            Edit
+          </button>
+          <button class="btn-toggle" onclick="toggleAvail(${s.id}, ${s.available})">
+            ${s.available ? 'Set Unavailable' : 'Set Available'}
+          </button>
+        </div>`;
+      grid.appendChild(card);
+    });
+  }
+
+  async function toggleAvail(id, current) {
+    try {
+      const res = await fetch(`${API}/api/admin/stylists/${id}`, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token() },
+        body:    JSON.stringify({ available: !current })
+      });
+      if (!res.ok) throw new Error();
+      showToast('Availability updated');
+      load();
+    } catch { showToast('Could not update', 'error'); }
+  }
+
+  function openAdd() {
+    editingId = null;
+    document.getElementById('modalEyebrow').textContent  = 'Add new';
+    document.getElementById('modalTitle').textContent    = 'New Stylist';
+    document.getElementById('mName').value               = '';
+    document.getElementById('mSpecialty').value          = 'Hair Specialist';
+    document.getElementById('mAvailable').checked        = true;
+    document.getElementById('modalMsg').className        = 'modal-msg';
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function openEdit(id, name, specialty, available) {
+    editingId = id;
+    document.getElementById('modalEyebrow').textContent  = 'Edit stylist';
+    document.getElementById('modalTitle').textContent    = 'Edit Stylist';
+    document.getElementById('mName').value               = name;
+    document.getElementById('mSpecialty').value          = specialty;
+    document.getElementById('mAvailable').checked        = available;
+    document.getElementById('modalMsg').className        = 'modal-msg';
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+    editingId = null;
+  }
+
+  async function saveStylist() {
+    const name      = document.getElementById('mName').value.trim();
+    const specialty = document.getElementById('mSpecialty').value;
+    const available = document.getElementById('mAvailable').checked;
+    const msgEl     = document.getElementById('modalMsg');
+
+    if (!name) {
+      msgEl.className   = 'modal-msg error';
+      msgEl.textContent = 'Name is required.';
+      return;
+    }
+
+    try {
+      const url    = editingId ? `${API}/api/admin/stylists/${editingId}` : `${API}/api/admin/stylists`;
+      const method = editingId ? 'PUT' : 'POST';
+      const res    = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token() },
+        body:    JSON.stringify({ name, specialty, available })
+      });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || 'Error');
+
+      msgEl.className   = 'modal-msg success';
+      msgEl.textContent = editingId ? 'Stylist updated!' : 'Stylist added!';
+      setTimeout(() => { closeModal(); load(); }, 800);
+    } catch (e) {
+      msgEl.className   = 'modal-msg error';
+      msgEl.textContent = e.message || 'Could not save.';
+    }
+  }
+
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className   = 'toast' + (type === 'error' ? ' error-toast' : '') + ' show';
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  load();
+</script>
+</body>
+</html>

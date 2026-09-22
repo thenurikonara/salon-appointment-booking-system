@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LUMIÈRE — Analytics</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       HTML PART
+  ════════════════════════════════════════════════════════════════ -->
+
+  <!-- ── Sidebar Navigation ── -->
+  <div class="sidebar">
+    <div class="sb-logo">LUMI<span>È</span>RE</div>
+
+    <div class="sb-section">Navigation</div>
+    <a href="admin.html"           class="sb-link"><span class="icon">◈</span> Dashboard</a>
+    <a href="manage-appts.html"    class="sb-link"><span class="icon">◷</span> Appointments</a>
+    <a href="manage-services.html" class="sb-link"><span class="icon">◇</span> Services</a>
+    <a href="manage-users.html"    class="sb-link"><span class="icon">○</span> Customers</a>
+    <a href="manage-stylists.html" class="sb-link"><span class="icon">✦</span> Stylists</a>
+
+    <div class="sb-section">Reports</div>
+    <a href="reports-reviews.html"   class="sb-link"><span class="icon">★</span> Reviews</a>
+    <a href="reports-analytics.html" class="sb-link active"><span class="icon">◇</span> Analytics</a>
+    <a href="settings.html"          class="sb-link"><span class="icon">○</span> Settings</a>
+
+    <div class="sb-footer">
+      <div class="sb-user" id="adminName">Admin Account</div>
+      <a href="login.html" class="sb-logout">← Sign Out</a>
+    </div>
+  </div>
+
+  <!-- ── Main Panel ── -->
+  <div class="main">
+
+    <!-- Top bar with title and refresh -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>Reports — <em>Analytics</em> ◇</h2>
+        <p id="todayDate"></p>
+      </div>
+      <div style="display:flex; gap:12px; align-items:center;">
+        <button class="refresh-btn" onclick="loadAll()">↻ Refresh</button>
+        <div class="admin-pill">✦ Admin Panel</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ── Summary Stat Cards ── -->
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">Total Bookings</div>
+          <div class="stat-num rose" id="stat-total"><span class="loading"></span></div>
+          <div class="stat-change" id="stat-total-sub">All time</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Total Revenue</div>
+          <div class="stat-num" id="stat-revenue"><span class="loading"></span></div>
+          <div class="stat-change warn" id="stat-revenue-sub">Confirmed appts</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Confirmation Rate</div>
+          <div class="stat-num" id="stat-rate"><span class="loading"></span></div>
+          <div class="stat-change" id="stat-rate-sub">Loading...</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Total Clients</div>
+          <div class="stat-num" id="stat-clients"><span class="loading"></span></div>
+          <div class="stat-change" id="stat-clients-sub">Registered</div>
+        </div>
+      </div>
+
+      <!-- ── Bookings Over Time Line Chart ── -->
+      <div class="chart-panel">
+        <h4>Bookings Over Time</h4>
+        <p class="chart-sub">Daily appointment volume — all time</p>
+        <div class="legend-row">
+          <div class="legend-item">
+            <div class="legend-swatch" style="background:#b8817a;"></div>
+            Appointments booked
+          </div>
+        </div>
+        <div style="position:relative; width:100%; height:260px;">
+          <canvas id="trendChart">No data yet.</canvas>
+        </div>
+      </div>
+
+      <!-- ── Two Charts Side by Side ── -->
+      <div class="two-grid">
+
+        <!-- Revenue by Category donut -->
+        <div class="chart-panel" style="margin-bottom:0;">
+          <h4>Revenue by Category</h4>
+          <p class="chart-sub">Confirmed appointments only</p>
+          <div class="legend-row" id="catLegend"></div>
+          <div style="position:relative; width:100%; height:240px;">
+            <canvas id="catChart">No data yet.</canvas>
+          </div>
+        </div>
+
+        <!-- New vs Returning Clients donut -->
+        <div class="chart-panel" style="margin-bottom:0;">
+          <h4>New vs Returning Clients</h4>
+          <p class="chart-sub">Based on booking history</p>
+          <div class="legend-row" id="clientLegend"></div>
+          <div style="position:relative; width:100%; height:240px;">
+            <canvas id="clientChart">No data yet.</canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Peak Hours Grid ── -->
+      <div class="section-head">
+        <h3>Peak Booking Hours</h3>
+        <span>All appointments · by time slot</span>
+      </div>
+      <div style="background:white; padding:32px; border:1px solid var(--border); box-shadow:0 2px 12px rgba(180,140,130,0.05); margin-bottom:44px;">
+        <div class="peak-grid" id="peakGrid">
+          <div style="color:var(--muted); font-size:13px; padding:24px;">Loading...</div>
+        </div>
+      </div>
+
+      <!-- ── Stylist Performance Bar Chart ── -->
+      <div class="section-head">
+        <h3>Stylist Performance</h3>
+        <span>All time · total appointments</span>
+      </div>
+      <div style="background:white; padding:32px; border:1px solid var(--border); box-shadow:0 2px 12px rgba(180,140,130,0.05); margin-bottom:44px;">
+        <div style="position:relative; width:100%; height:320px;">
+          <canvas id="stylistChart">No data yet.</canvas>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       CSS PART
+  ════════════════════════════════════════════════════════════════ -->
+  <style>
+
+    /* ── Reset & Variables ── */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --rose: #d4a5a0;
+      --rose-deep: #b8817a;
+      --rose-pale: #f7ede8;
+      --blush: #fdf0ec;
+      --ivory: #faf7f2;
+      --sage: #a8b5a0;
+      --ink: #2c2420;
+      --muted: #9a8f8a;
+      --border: rgba(180, 140, 130, 0.2);
+      --green: #6b9e7a;
+    }
+
+    body {
+      font-family: 'Jost', sans-serif;
+      background: var(--ivory);
+      color: var(--ink);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: white;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+      box-shadow: 4px 0 20px rgba(180, 140, 130, 0.06);
+    }
+
+    .sb-logo {
+      padding: 32px 28px 28px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      letter-spacing: 5px;
+      color: var(--ink);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sb-logo span {
+      color: var(--rose-deep);
+    }
+
+    .sb-section {
+      padding: 22px 0 6px 28px;
+      font-size: 9px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(154, 143, 138, 0.6);
+    }
+
+    .sb-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 28px;
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transition: all 0.3s;
+      border-left: 2px solid transparent;
+    }
+
+    .sb-link:hover {
+      color: var(--ink);
+      background: var(--blush);
+    }
+
+    .sb-link.active {
+      color: var(--rose-deep);
+      border-left-color: var(--rose-deep);
+      background: var(--rose-pale);
+    }
+
+    .sb-link .icon {
+      font-size: 15px;
+      width: 18px;
+      text-align: center;
+    }
+
+    .sb-footer {
+      margin-top: auto;
+      padding: 22px 28px;
+      border-top: 1px solid var(--border);
+    }
+
+    .sb-user {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .sb-logout {
+      color: var(--rose-deep);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+
+    /* ── Main Content Area ── */
+    .main {
+      margin-left: 220px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ── Top Bar ── */
+    .topbar {
+      padding: 22px 48px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      box-shadow: 0 2px 12px rgba(180, 140, 130, 0.06);
+    }
+
+    .topbar-left h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      font-weight: 300;
+      color: var(--ink);
+    }
+
+    .topbar-left h2 em {
+      color: var(--rose-deep);
+      font-style: italic;
+    }
+
+    .topbar-left p {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      margin-top: 3px;
+    }
+
+    .admin-pill {
+      background: var(--rose-pale);
+      border: 1.5px solid var(--border);
+      color: var(--rose-deep);
+      padding: 9px 22px;
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+    }
+
+    /* ── Page Content ── */
+    .content {
+      padding: 44px 48px;
+      flex: 1;
+    }
+
+    /* ── Summary Stat Cards Row ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      margin-bottom: 44px;
+    }
+
+    .stat {
+      background: white;
+      padding: 28px;
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--rose-deep);
+      box-shadow: 0 2px 12px rgba(180, 140, 130, 0.05);
+    }
+
+    .stat-label {
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 44px;
+      font-weight: 300;
+      color: var(--ink);
+      line-height: 1;
+    }
+
+    .stat-num.rose {
+      color: var(--rose-deep);
+    }
+
+    .stat-change {
+      font-size: 11px;
+      color: var(--green);
+      margin-top: 7px;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-change.warn {
+      color: #c9a96e;
+    }
+
+    /* ── Shimmer Loading Placeholder ── */
+    .loading {
+      display: inline-block;
+      width: 60px;
+      height: 44px;
+      background: linear-gradient(90deg, var(--blush) 25%, var(--ivory) 50%, var(--blush) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+      border-radius: 4px;
+    }
+
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ── Section Heading Row ── */
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .section-head h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px;
+      font-weight: 300;
+      color: var(--ink);
+    }
+
+    .section-head span {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ── Two-column layout for charts ── */
+    .two-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 44px;
+    }
+
+    /* ── Chart Panels ── */
+    .chart-panel {
+      background: white;
+      padding: 32px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 12px rgba(180, 140, 130, 0.05);
+      margin-bottom: 28px;
+    }
+
+    .chart-panel h4 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 300;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+
+    .chart-sub {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      margin-bottom: 24px;
+    }
+
+    /* ── Chart Legend ── */
+    .legend-row {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .legend-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    /* ── Refresh Button ── */
+    .refresh-btn {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--muted);
+      padding: 8px 18px;
+      font-family: 'Jost', sans-serif;
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .refresh-btn:hover {
+      border-color: var(--rose-deep);
+      color: var(--rose-deep);
+    }
+
+    /* ── Peak Hours Grid ── */
+    .peak-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 8px;
+    }
+
+    .peak-cell {
+      padding: 10px 8px;
+      text-align: center;
+      border: 1px solid var(--border);
+      font-size: 11px;
+    }
+
+    .peak-cell .peak-time {
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .peak-cell .peak-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 300;
+    }
+
+  </style>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       JAVASCRIPT PART
+  ════════════════════════════════════════════════════════════════ -->
+  <script>
+
+    // ── Config ─────────────────────────────────────────────────────
+    const API   = 'http://localhost:5000';
+    const token = () => localStorage.getItem('token');
+
+    // Chart colour palette
+    const ROSE       = '#b8817a';
+    const BLUSH      = '#f7ede8';
+    const SAGE       = '#a8b5a0';
+    const GOLD       = '#c9a96e';
+    const INK        = '#2c2420';
+    const MUTED      = '#9a8f8a';
+    const CAT_COLORS = ['#b8817a', '#a8b5a0', '#c9a96e', '#8fa8c8'];
+
+    // Keep chart references so we can destroy before redrawing
+    let trendChart   = null;
+    let catChart     = null;
+    let clientChart  = null;
+    let stylistChart = null;
+
+    // Show today's date in the topbar
+    const today = new Date();
+    document.getElementById('todayDate').textContent =
+      today.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
+      + ' · Kandy, Sri Lanka';
+
+    // Safely destroy a chart before recreating it
+    function destroyChart(c) {
+      if (c) { try { c.destroy(); } catch (e) {} }
+    }
+
+    // Load all data sections in parallel
+    async function loadAll() {
+      await Promise.all([
+        loadSummary(),
+        loadAppointmentsData(),
+        loadClientsData(),
+        loadStylistData()
+      ]);
+    }
+
+    // ── Summary Stat Cards ─────────────────────────────────────────
+    async function loadSummary() {
+      try {
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        const res  = await fetch(`${API}/api/admin/reports/summary?from=2020-01-01&to=${todayStr}`, {
+          headers: { 'Authorization': `Bearer ${token()}` }
+        });
+        const data = await res.json();
+
+        document.getElementById('stat-total').textContent    = data.total ?? '—';
+        document.getElementById('stat-revenue').textContent  = data.total_revenue
+          ? 'Rs ' + Math.round(data.total_revenue).toLocaleString() : '—';
+        document.getElementById('stat-rate').textContent     = (data.confirmation_rate ?? 0) + '%';
+        document.getElementById('stat-rate-sub').textContent = data.confirmation_rate >= 80
+          ? 'Excellent ✦' : 'Room to improve';
+
+        const res2  = await fetch(`${API}/api/admin/stats`, {
+          headers: { 'Authorization': `Bearer ${token()}` }
+        });
+        const stats = await res2.json();
+        document.getElementById('stat-clients').textContent = stats.total_clients ?? '—';
+
+      } catch (e) {
+        ['stat-total', 'stat-revenue', 'stat-rate', 'stat-clients']
+          .forEach(id => document.getElementById(id).textContent = '—');
+      }
+    }
+
+    // ── Appointments Data (trend line + category donut + peak hours) ─
+    async function loadAppointmentsData() {
+      try {
+        const res   = await fetch(`${API}/api/admin/appointments?all=true`, {
+          headers: { 'Authorization': `Bearer ${token()}` }
+        });
+        const appts = await res.json();
+
+        // --- Bookings over time: count per date ---
+        const dateMap = {};
+        appts.forEach(a => {
+          dateMap[a.date] = (dateMap[a.date] || 0) + 1;
+        });
+        const sortedDates = Object.keys(dateMap).sort();
+
+        destroyChart(trendChart);
+        trendChart = new Chart(document.getElementById('trendChart'), {
+          type: 'line',
+          data: {
+            labels: sortedDates,
+            datasets: [{
+              label: 'Appointments',
+              data: sortedDates.map(d => dateMap[d]),
+              borderColor: ROSE,
+              backgroundColor: 'rgba(184,129,122,0.08)',
+              borderWidth: 1.5,
+              pointRadius: sortedDates.length > 30 ? 0 : 3,
+              pointBackgroundColor: ROSE,
+              tension: 0.3,
+              fill: true
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { title: t => `Date: ${t[0].label}` } }
+            },
+            scales: {
+              x: { grid: { color: 'rgba(180,140,130,0.08)' }, ticks: { color: MUTED, font: { size: 10 }, maxTicksLimit: 10 } },
+              y: { grid: { color: 'rgba(180,140,130,0.08)' }, ticks: { color: MUTED, font: { size: 10 }, stepSize: 1 }, min: 0 }
+            }
+          }
+        });
+
+        // --- Revenue by category ---
+        const catRevMap = {};
+        appts.filter(a => a.status === 'confirmed').forEach(a => {
+          const svc = a.service || '';
+          let cat = 'Other';
+          if (/hair|cut|color|keratin|massage|spa/i.test(svc))    cat = 'Hair';
+          else if (/nail|manicure|pedicure|gel/i.test(svc))       cat = 'Nails';
+          else if (/facial|eyebrow|eyelash|skin|brow/i.test(svc)) cat = 'Skin';
+          else if (/bridal|event|party|makeup/i.test(svc))        cat = 'Special';
+          catRevMap[cat] = (catRevMap[cat] || 0) + (a.price || 0);
+        });
+
+        const catLabels = Object.keys(catRevMap);
+        const catData   = catLabels.map(k => catRevMap[k]);
+
+        document.getElementById('catLegend').innerHTML = catLabels.map((l, i) =>
+          `<div class="legend-item">
+            <div class="legend-swatch" style="background:${CAT_COLORS[i % CAT_COLORS.length]};"></div>
+            ${l}: Rs ${Math.round(catData[i]).toLocaleString()}
+          </div>`
+        ).join('');
+
+        destroyChart(catChart);
+        catChart = new Chart(document.getElementById('catChart'), {
+          type: 'doughnut',
+          data: {
+            labels: catLabels,
+            datasets: [{
+              data: catData,
+              backgroundColor: CAT_COLORS.slice(0, catLabels.length),
+              borderWidth: 2,
+              borderColor: '#faf7f2'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: ctx => `Rs ${Math.round(ctx.raw).toLocaleString()}` } }
+            }
+          }
+        });
+
+        // --- Peak hours ---
+        const hourMap = {};
+        appts.forEach(a => {
+          if (a.time) hourMap[a.time] = (hourMap[a.time] || 0) + 1;
+        });
+
+        const sortedHours = Object.keys(hourMap).sort();
+        const maxH = Math.max(...Object.values(hourMap), 1);
+
+        document.getElementById('peakGrid').innerHTML = sortedHours.length
+          ? sortedHours.map(h => {
+              const count     = hourMap[h];
+              const intensity = Math.round(count / maxH * 100);
+              const bg        = intensity > 70 ? ROSE
+                              : intensity > 40 ? GOLD
+                              : intensity > 20 ? 'rgba(168,181,160,0.4)'
+                              : BLUSH;
+              const textColor = intensity > 60 ? 'white' : INK;
+              return `
+                <div class="peak-cell" style="background:${bg}; border-color:rgba(180,140,130,0.15);">
+                  <div class="peak-time" style="color:${intensity > 60 ? 'rgba(255,255,255,0.7)' : MUTED};">${h}</div>
+                  <div class="peak-num"  style="color:${textColor};">${count}</div>
+                </div>`;
+            }).join('')
+          : '<div style="color:var(--muted);font-size:13px;padding:24px;">No appointment data yet. Book some appointments to see peak hours.</div>';
+
+      } catch (e) {
+        document.getElementById('trendChart').parentElement.innerHTML =
+          '<div style="padding:48px;text-align:center;color:var(--muted);font-size:13px;">⚠️ Could not load data — make sure backend is running.</div>';
+      }
+    }
+
+    // ── New vs Returning Clients Donut ─────────────────────────────
+    async function loadClientsData() {
+      try {
+        const res       = await fetch(`${API}/api/admin/customers`, {
+          headers: { 'Authorization': `Bearer ${token()}` }
+        });
+        const customers = await res.json();
+
+        const newC   = customers.filter(c => c.total_bookings === 1).length;
+        const retC   = customers.filter(c => c.total_bookings > 1).length;
+        const total  = customers.length || 1;
+
+        document.getElementById('clientLegend').innerHTML = `
+          <div class="legend-item">
+            <div class="legend-swatch" style="background:${ROSE};"></div>
+            New: ${newC} (${Math.round(newC / total * 100)}%)
+          </div>
+          <div class="legend-item">
+            <div class="legend-swatch" style="background:${SAGE};"></div>
+            Returning: ${retC} (${Math.round(retC / total * 100)}%)
+          </div>`;
+
+        destroyChart(clientChart);
+        clientChart = new Chart(document.getElementById('clientChart'), {
+          type: 'doughnut',
+          data: {
+            labels: ['New Clients', 'Returning Clients'],
+            datasets: [{
+              data: [newC, retC],
+              backgroundColor: [ROSE, SAGE],
+              borderWidth: 2,
+              borderColor: '#faf7f2'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.raw}` } }
+            }
+          }
+        });
+
+      } catch (e) {}
+    }
+
+    // ── Stylist Performance Horizontal Bar Chart ───────────────────
+    async function loadStylistData() {
+      try {
+        const res   = await fetch(`${API}/api/admin/appointments?all=true`, {
+          headers: { 'Authorization': `Bearer ${token()}` }
+        });
+        const appts = await res.json();
+
+        const sMap = {};
+        appts.forEach(a => {
+          const s  = a.stylist || 'Unassigned';
+          sMap[s]  = (sMap[s] || 0) + 1;
+        });
+
+        const entries = Object.entries(sMap).sort((a, b) => b[1] - a[1]);
+
+        destroyChart(stylistChart);
+        stylistChart = new Chart(document.getElementById('stylistChart'), {
+          type: 'bar',
+          data: {
+            labels: entries.map(e => e[0]),
+            datasets: [{
+              label: 'Appointments',
+              data: entries.map(e => e[1]),
+              backgroundColor: 'rgba(184,129,122,0.15)',
+              borderColor: ROSE,
+              borderWidth: 1.5
+            }]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { color: 'rgba(180,140,130,0.08)' }, ticks: { color: MUTED, font: { size: 11 }, stepSize: 1 }, min: 0 },
+              y: { grid: { display: false }, ticks: { color: INK, font: { size: 12 } } }
+            }
+          }
+        });
+
+      } catch (e) {}
+    }
+
+    // ── Start ──────────────────────────────────────────────────────
+    loadAll();
+
+  </script>
+</body>
+</html>

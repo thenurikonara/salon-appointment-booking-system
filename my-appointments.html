@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LUMIÈRE — My Appointments</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <!-- Custom cursor dots -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- ── Navigation ── -->
+  <nav>
+    <a href="index.html" class="nav-logo">LUMI<span>È</span>RE</a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="booking.html">Book</a>
+      <a href="my-appointments.html" class="active">My Appointments</a>
+      <button class="nav-cta" onclick="logout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <!-- ── Hero Banner ── -->
+  <div class="page-hero">
+    <div class="hero-eyebrow">Your Journey</div>
+    <h1 class="hero-title">My <em>Appointments</em></h1>
+    <p class="hero-sub">View, reschedule, or cancel your upcoming visits.</p>
+    <div class="hero-deco">✦</div>
+  </div>
+
+  <!-- ── Main Content ── -->
+  <main class="main">
+
+    <div class="filter-bar">
+      <span class="filter-label">Show</span>
+      <button class="filter-pill active" onclick="setFilter('all', this)">All</button>
+      <button class="filter-pill" onclick="setFilter('pending', this)">Pending</button>
+      <button class="filter-pill" onclick="setFilter('confirmed', this)">Confirmed</button>
+      <button class="filter-pill" onclick="setFilter('completed', this)">Completed</button>
+      <button class="filter-pill" onclick="setFilter('cancelled', this)">Cancelled</button>
+    </div>
+
+    <div id="cardsContainer">
+      <div class="state-box">
+        <div class="spinner"></div>
+        <p class="state-sub" style="letter-spacing:2px;text-transform:uppercase;font-size:11px;">
+          Loading your appointments…
+        </p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ── Reschedule Modal ── -->
+  <div class="overlay" id="rescheduleOverlay">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('rescheduleOverlay')">✕</button>
+      <div class="modal-eyebrow">Modify Booking</div>
+      <h2 class="modal-title">Re<em>schedule</em></h2>
+      <p class="modal-sub">Choose a new date and time for your appointment.</p>
+
+      <div id="rescheduleMsg" class="modal-msg"></div>
+
+      <div class="field-wrap">
+        <label class="field-label">New Date</label>
+        <input class="field-input" type="date" id="newDate" onchange="loadSlots()"/>
+        <div class="field-line"></div>
+      </div>
+
+      <div class="field-wrap">
+        <label class="field-label">Available Time Slots</label>
+        <div class="slots-grid" id="slotsGrid">
+          <p style="font-size:12px;color:var(--muted);grid-column:1/-1;padding:8px 0;">
+            Select a date to see available slots.
+          </p>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-ghost" onclick="closeModal('rescheduleOverlay')">Cancel</button>
+        <button class="btn-primary" onclick="confirmReschedule()">
+          <span>Confirm Reschedule</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Cancel Confirmation Modal ── -->
+  <div class="overlay" id="cancelOverlay">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('cancelOverlay')">✕</button>
+      <div class="modal-eyebrow">Cancel Booking</div>
+      <h2 class="modal-title">Are you <em>sure?</em></h2>
+
+      <div id="cancelMsg" class="modal-msg"></div>
+
+      <p class="confirm-text">
+        You are about to cancel your appointment for
+        <strong id="cancelServiceName">—</strong> on
+        <strong id="cancelDate">—</strong> at
+        <strong id="cancelTime">—</strong>.<br/><br/>
+        This action cannot be undone.
+      </p>
+
+      <div class="modal-actions">
+        <button class="btn-ghost" onclick="closeModal('cancelOverlay')">Keep It</button>
+        <button class="btn-danger" onclick="confirmCancel()">Yes, Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
+
+<style>
+
+  /* ── Reset & Variables ── */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --rose: #d4a5a0;
+    --rose-deep: #b8817a;
+    --rose-pale: #f7ede8;
+    --blush: #fdf0ec;
+    --ivory: #faf7f2;
+    --sage: #a8b5a0;
+    --sage-pale: #edf1eb;
+    --gold: #c9a96e;
+    --ink: #2c2420;
+    --ink-soft: #5a4e48;
+    --muted: #9a8f8a;
+    --border: rgba(180, 140, 130, 0.2);
+    --border-soft: rgba(180, 140, 130, 0.12);
+  }
+
+  html, body {
+    min-height: 100%;
+    cursor: none;
+  }
+
+  body {
+    font-family: 'Jost', sans-serif;
+    background: var(--ivory);
+    color: var(--ink);
+  }
+
+  /* ── Custom Cursor ── */
+  .cursor {
+    width: 9px;
+    height: 9px;
+    background: var(--rose-deep);
+    border-radius: 50%;
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+  }
+
+  .cursor-ring {
+    width: 34px;
+    height: 34px;
+    border: 1.5px solid var(--rose);
+    border-radius: 50%;
+    position: fixed;
+    z-index: 9998;
+    pointer-events: none;
+    transition: all 0.18s ease;
+    opacity: 0.7;
+  }
+
+  /* ── Navigation ── */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 60px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(250, 247, 242, 0.95);
+    backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    letter-spacing: 5px;
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 300;
+  }
+
+  .nav-logo span {
+    color: var(--rose-deep);
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 36px;
+  }
+
+  .nav-links a {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.3s;
+    cursor: none;
+  }
+
+  .nav-links a:hover,
+  .nav-links a.active {
+    color: var(--rose-deep);
+  }
+
+  .nav-cta {
+    padding: 10px 24px;
+    border: 1.5px solid var(--rose-deep);
+    color: var(--rose-deep);
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    background: transparent;
+    cursor: none;
+    transition: all 0.3s;
+  }
+
+  .nav-cta:hover {
+    background: var(--rose-deep);
+    color: white;
+  }
+
+  /* ── Page Hero Banner ── */
+  .page-hero {
+    background: linear-gradient(135deg, var(--rose-pale) 0%, var(--blush) 60%, var(--sage-pale) 100%);
+    padding: 56px 60px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .page-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 80% 50%, rgba(212, 165, 160, 0.25) 0%, transparent 70%);
+  }
+
+  .hero-eyebrow {
+    font-size: 10px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--rose-deep);
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 52px;
+    font-weight: 300;
+    color: var(--ink);
+    line-height: 1.1;
+    position: relative;
+  }
+
+  .hero-title em {
+    color: var(--rose-deep);
+    font-style: italic;
+  }
+
+  .hero-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 10px;
+    letter-spacing: 1px;
+    position: relative;
+  }
+
+  .hero-deco {
+    position: absolute;
+    right: 60px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 120px;
+    font-weight: 300;
+    color: rgba(212, 165, 160, 0.12);
+    pointer-events: none;
+    letter-spacing: -4px;
+  }
+
+  /* ── Main Content Area ── */
+  .main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 52px 60px;
+  }
+
+  /* ── Filter Pills ── */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+  }
+
+  .filter-label {
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-right: 4px;
+  }
+
+  .filter-pill {
+    padding: 8px 20px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: none;
+    transition: all 0.3s;
+  }
+
+  .filter-pill.active {
+    border-color: var(--rose-deep);
+    color: var(--rose-deep);
+    background: rgba(184, 129, 122, 0.06);
+  }
+
+  .filter-pill:hover {
+    border-color: var(--rose);
+    color: var(--rose-deep);
+  }
+
+  /* ── Empty / Loading State Box ── */
+  .state-box {
+    text-align: center;
+    padding: 80px 40px;
+  }
+
+  .state-icon {
+    font-size: 40px;
+    margin-bottom: 20px;
+    opacity: 0.4;
+  }
+
+  .state-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+
+  .state-sub {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  .state-cta {
+    display: inline-block;
+    margin-top: 28px;
+    padding: 13px 36px;
+    background: var(--rose-deep);
+    color: white;
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: none;
+    transition: background 0.3s;
+  }
+
+  .state-cta:hover {
+    background: var(--rose);
+  }
+
+  .spinner {
+    width: 36px;
+    height: 36px;
+    border: 2px solid var(--border);
+    border-top-color: var(--rose-deep);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 28px;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ── Appointment Cards ── */
+  .cards-grid {
+    display: grid;
+    gap: 24px;
+  }
+
+  .appt-card {
+    background: white;
+    border: 1px solid var(--border);
+    transition: box-shadow 0.3s, transform 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .appt-card:hover {
+    box-shadow: 0 12px 40px rgba(180, 140, 130, 0.14);
+    transform: translateY(-2px);
+  }
+
+  .card-accent {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+  }
+
+  .status-pending   .card-accent { background: var(--gold); }
+  .status-confirmed .card-accent { background: var(--sage); }
+  .status-cancelled .card-accent { background: #ccc; }
+  .status-completed .card-accent { background: var(--rose-deep); }
+
+  .card-inner {
+    padding: 28px 32px 28px 36px;
+  }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .card-service {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    font-weight: 400;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+
+  .card-badge {
+    padding: 4px 14px;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  .badge-pending   { background: rgba(201,169,110,0.12); color: #9a7830; border: 1px solid rgba(201,169,110,0.3); }
+  .badge-confirmed { background: rgba(168,181,160,0.15); color: #5a7850; border: 1px solid rgba(168,181,160,0.3); }
+  .badge-cancelled { background: rgba(180,170,165,0.12); color: var(--muted); border: 1px solid var(--border); }
+  .badge-completed { background: rgba(184,129,122,0.1);  color: var(--rose-deep); border: 1px solid rgba(184,129,122,0.25); }
+
+  .card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .meta-label {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .meta-value {
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+
+  .card-divider {
+    height: 1px;
+    background: var(--border-soft);
+    margin-bottom: 20px;
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .btn-cancel {
+    padding: 9px 22px;
+    border: 1.5px solid rgba(180, 140, 130, 0.35);
+    background: transparent;
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: none;
+    transition: all 0.3s;
+  }
+
+  .btn-cancel:hover {
+    border-color: var(--rose-deep);
+    color: var(--rose-deep);
+  }
+
+  .btn-reschedule {
+    padding: 9px 22px;
+    border: 1.5px solid var(--rose-deep);
+    background: transparent;
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--rose-deep);
+    cursor: none;
+    transition: all 0.3s;
+  }
+
+  .btn-reschedule:hover {
+    background: var(--rose-deep);
+    color: white;
+  }
+
+  .card-id {
+    margin-left: auto;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    opacity: 0.6;
+  }
+
+  /* ── Modal Overlay ── */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(44, 36, 32, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 500;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .overlay.open {
+    display: flex;
+  }
+
+  /* ── Modal Box ── */
+  .modal {
+    background: var(--ivory);
+    width: 100%;
+    max-width: 520px;
+    padding: 48px;
+    position: relative;
+    animation: modalIn 0.3s ease;
+  }
+
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: var(--muted);
+    cursor: none;
+    line-height: 1;
+    transition: color 0.2s;
+  }
+
+  .modal-close:hover {
+    color: var(--ink);
+  }
+
+  .modal-eyebrow {
+    font-size: 10px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--rose-deep);
+    margin-bottom: 10px;
+  }
+
+  .modal-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    font-weight: 300;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+
+  .modal-title em {
+    color: var(--rose-deep);
+    font-style: italic;
+  }
+
+  .modal-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 36px;
+    line-height: 1.75;
+  }
+
+  /* ── Form Fields inside Modal ── */
+  .field-wrap {
+    margin-bottom: 28px;
+    position: relative;
+  }
+
+  .field-label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .field-input {
+    width: 100%;
+    padding: 14px 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1.5px solid var(--border);
+    color: var(--ink);
+    font-family: 'Jost', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.3s;
+    caret-color: var(--rose-deep);
+  }
+
+  .field-input:focus {
+    border-bottom-color: var(--rose-deep);
+  }
+
+  .field-line {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1.5px;
+    background: var(--rose-deep);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+  }
+
+  .field-wrap:focus-within .field-line {
+    transform: scaleX(1);
+  }
+
+  /* ── Time Slot Buttons Grid ── */
+  .slots-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .slot-btn {
+    padding: 9px 6px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    color: var(--muted);
+    cursor: none;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .slot-btn:hover:not(:disabled) {
+    border-color: var(--rose);
+    color: var(--rose-deep);
+  }
+
+  .slot-btn.selected {
+    border-color: var(--rose-deep);
+    background: rgba(184, 129, 122, 0.1);
+    color: var(--rose-deep);
+  }
+
+  .slot-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  /* ── Modal Messages ── */
+  .modal-msg {
+    padding: 11px 14px;
+    margin-bottom: 20px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    border-left: 2.5px solid;
+    display: none;
+  }
+
+  .modal-msg.success {
+    border-color: #82b89a;
+    background: rgba(168, 181, 160, 0.1);
+    color: #4a8060;
+    display: block;
+  }
+
+  .modal-msg.error {
+    border-color: var(--rose);
+    background: rgba(212, 165, 160, 0.1);
+    color: var(--rose-deep);
+    display: block;
+  }
+
+  /* ── Modal Action Buttons ── */
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .btn-primary {
+    flex: 1;
+    padding: 15px;
+    background: var(--rose-deep);
+    color: white;
+    border: none;
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    cursor: none;
+    transition: background 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--rose);
+    transform: translateX(-101%);
+    transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+  }
+
+  .btn-primary:hover::before {
+    transform: translateX(0);
+  }
+
+  .btn-primary span {
+    position: relative;
+    z-index: 1;
+  }
+
+  .btn-ghost {
+    padding: 15px 24px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: none;
+    transition: all 0.3s;
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+
+  /* ── Cancel Confirmation Modal ── */
+  .confirm-text {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.8;
+    margin-bottom: 32px;
+  }
+
+  .confirm-text strong {
+    color: var(--ink);
+  }
+
+  .btn-danger {
+    flex: 1;
+    padding: 15px;
+    background: #c0534a;
+    color: white;
+    border: none;
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    cursor: none;
+    transition: background 0.3s;
+  }
+
+  .btn-danger:hover {
+    background: #a84039;
+  }
+
+  /* ── Toast Notification ── */
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--ink);
+    color: white;
+    padding: 14px 28px;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    z-index: 9000;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+
+  .toast.success-toast { background: #4a7a60; }
+  .toast.error-toast   { background: #a84039; }
+
+</style>
+
+<script>
+
+  // ── Config ────────────────────────────────────────────────────
+  const API = 'http://localhost:5000';
+
+  let allAppointments = [];
+  let currentFilter   = 'all';
+  let activeApptId    = null;
+  let selectedSlot    = null;
+
+  // ── Custom Cursor ─────────────────────────────────────────────
+  const cursor = document.getElementById('cursor');
+  const ring   = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX;
+    my = e.clientY;
+    cursor.style.left = mx - 4 + 'px';
+    cursor.style.top  = my - 4 + 'px';
+  });
+
+  (function loop() {
+    rx += (mx - rx - 17) * 0.13;
+    ry += (my - ry - 17) * 0.13;
+    ring.style.left = rx + 'px';
+    ring.style.top  = ry + 'px';
+    requestAnimationFrame(loop);
+  })();
+
+  // ── Auth Helpers ──────────────────────────────────────────────
+  function getToken() {
+    const t = localStorage.getItem('token');
+    if (!t) { location.href = 'login.html'; return null; }
+    return t;
+  }
+
+  function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    location.href = 'login.html';
+  }
+
+  // ── Toast Pop-up ──────────────────────────────────────────────
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className   = `toast ${type}-toast show`;
+    setTimeout(() => { t.classList.remove('show'); }, 3000);
+  }
+
+  // ── Load Appointments from Server ─────────────────────────────
+  async function loadAppointments() {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const res  = await fetch(`${API}/api/my-appointments`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (res.status === 401) { logout(); return; }
+
+      const data      = await res.json();
+      allAppointments = data;
+      renderCards();
+
+    } catch (e) {
+      document.getElementById('cardsContainer').innerHTML = `
+        <div class="state-box">
+          <div class="state-icon">⚠</div>
+          <p class="state-title">Connection Error</p>
+          <p class="state-sub">Unable to reach the server. Please check your connection and try again.</p>
+          <button onclick="loadAppointments()" class="state-cta" style="border:none;">Retry</button>
+        </div>`;
+    }
+  }
+
+  // ── Filter Pills ──────────────────────────────────────────────
+  function setFilter(f, btn) {
+    currentFilter = f;
+    document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderCards();
+  }
+
+  function formatDate(d) {
+    const [y, m, day] = d.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${parseInt(day)} ${months[parseInt(m) - 1]} ${y}`;
+  }
+
+  // ── Render Appointment Cards ──────────────────────────────────
+  function renderCards() {
+    const filtered = currentFilter === 'all'
+      ? allAppointments
+      : allAppointments.filter(a => a.status === currentFilter);
+
+    const container = document.getElementById('cardsContainer');
+
+    if (!filtered.length) {
+      const label = currentFilter === 'all' ? 'appointments' : `${currentFilter} appointments`;
+      container.innerHTML = `
+        <div class="state-box">
+          <div class="state-icon">🌸</div>
+          <p class="state-title">No ${label} found</p>
+          <p class="state-sub">Your next visit to Lumière is just a click away.</p>
+          <a href="booking.html" class="state-cta">Book an Appointment</a>
+        </div>`;
+      return;
+    }
+
+    const canAct = a => a.status === 'pending' || a.status === 'confirmed';
+
+    container.innerHTML = `
+      <div class="cards-grid">
+        ${filtered.map(a => `
+          <div class="appt-card status-${a.status}" id="card-${a.id}">
+            <div class="card-accent"></div>
+            <div class="card-inner">
+
+              <div class="card-top">
+                <div class="card-service">${a.service}</div>
+                <div class="card-badge badge-${a.status}">${a.status}</div>
+              </div>
+
+              <div class="card-meta">
+                <div class="meta-item">
+                  <span class="meta-label">Date</span>
+                  <span class="meta-value">${formatDate(a.date)}</span>
+                </div>
+                <div class="meta-item">
+                  <span class="meta-label">Time</span>
+                  <span class="meta-value">${a.time}</span>
+                </div>
+                <div class="meta-item">
+                  <span class="meta-label">Stylist</span>
+                  <span class="meta-value">${a.stylist}</span>
+                </div>
+                <div class="meta-item">
+                  <span class="meta-label">Price</span>
+                  <span class="meta-value">LKR ${Number(a.price).toLocaleString()}</span>
+                </div>
+              </div>
+
+              ${canAct(a) ? `
+                <div class="card-divider"></div>
+                <div class="card-actions">
+                  <button class="btn-cancel"
+                    onclick="openCancelModal(${a.id}, '${a.service.replace(/'/g,"\\'")}', '${a.date}', '${a.time}')">
+                    Cancel
+                  </button>
+                  <button class="btn-reschedule" onclick="openRescheduleModal(${a.id})">
+                    Reschedule
+                  </button>
+                  <span class="card-id">#${String(a.id).padStart(4, '0')}</span>
+                </div>
+              ` : `
+                <div style="display:flex;justify-content:flex-end;">
+                  <span class="card-id">#${String(a.id).padStart(4, '0')}</span>
+                </div>
+              `}
+
+            </div>
+          </div>
+        `).join('')}
+      </div>`;
+  }
+
+  // ── Reschedule Modal ──────────────────────────────────────────
+  function openRescheduleModal(id) {
+    activeApptId = id;
+    selectedSlot = null;
+
+    document.getElementById('newDate').value    = '';
+    document.getElementById('slotsGrid').innerHTML =
+      '<p style="font-size:12px;color:var(--muted);grid-column:1/-1;padding:8px 0;">Select a date to see available slots.</p>';
+    document.getElementById('rescheduleMsg').className = 'modal-msg';
+
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('newDate').min = tomorrow.toISOString().split('T')[0];
+
+    document.getElementById('rescheduleOverlay').classList.add('open');
+  }
+
+  async function loadSlots() {
+    const date = document.getElementById('newDate').value;
+    if (!date) return;
+
+    const grid = document.getElementById('slotsGrid');
+    grid.innerHTML = '<p style="font-size:11px;color:var(--muted);grid-column:1/-1;letter-spacing:2px;text-transform:uppercase;">Loading slots…</p>';
+    selectedSlot = null;
+
+    try {
+      const res  = await fetch(`${API}/api/slots?date=${date}`);
+      const data = await res.json();
+
+      if (!data.available.length) {
+        grid.innerHTML = '<p style="font-size:12px;color:var(--muted);grid-column:1/-1;">No slots available on this date. Please choose another.</p>';
+        return;
+      }
+
+      grid.innerHTML = data.available
+        .map(s => `<button class="slot-btn" onclick="selectSlot(this, '${s}')">${s}</button>`)
+        .join('');
+
+    } catch (e) {
+      grid.innerHTML = '<p style="font-size:12px;color:#c0534a;grid-column:1/-1;">Could not load slots. Try again.</p>';
+    }
+  }
+
+  function selectSlot(btn, slot) {
+    document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedSlot = slot;
+  }
+
+  async function confirmReschedule() {
+    const date = document.getElementById('newDate').value;
+    const msg  = document.getElementById('rescheduleMsg');
+    msg.className = 'modal-msg';
+
+    if (!date || !selectedSlot) {
+      msg.className   = 'modal-msg error';
+      msg.textContent = 'Please select both a date and a time slot.';
+      return;
+    }
+
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const res  = await fetch(`${API}/api/appointments/${activeApptId}/reschedule`, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body:    JSON.stringify({ date, time_slot: selectedSlot })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        closeModal('rescheduleOverlay');
+        showToast('Appointment rescheduled ✦', 'success');
+        await loadAppointments();
+      } else {
+        msg.className   = 'modal-msg error';
+        msg.textContent = data.error || 'Reschedule failed. Please try again.';
+      }
+    } catch (e) {
+      msg.className   = 'modal-msg error';
+      msg.textContent = 'Connection error. Please try again.';
+    }
+  }
+
+  // ── Cancel Modal ──────────────────────────────────────────────
+  function openCancelModal(id, service, date, time) {
+    activeApptId = id;
+
+    document.getElementById('cancelServiceName').textContent = service;
+    document.getElementById('cancelDate').textContent        = formatDate(date);
+    document.getElementById('cancelTime').textContent        = time;
+    document.getElementById('cancelMsg').className           = 'modal-msg';
+
+    document.getElementById('cancelOverlay').classList.add('open');
+  }
+
+  async function confirmCancel() {
+    const msg   = document.getElementById('cancelMsg');
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const res  = await fetch(`${API}/api/appointments/${activeApptId}/cancel`, {
+        method:  'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        closeModal('cancelOverlay');
+        showToast('Appointment cancelled.', 'error');
+        await loadAppointments();
+      } else {
+        msg.className   = 'modal-msg error';
+        msg.textContent = data.error || 'Could not cancel. Please try again.';
+      }
+    } catch (e) {
+      msg.className   = 'modal-msg error';
+      msg.textContent = 'Connection error. Please try again.';
+    }
+  }
+
+  // ── Modal Helpers ─────────────────────────────────────────────
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+  }
+
+  document.querySelectorAll('.overlay').forEach(o => {
+    o.addEventListener('click', e => {
+      if (e.target === o) o.classList.remove('open');
+    });
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.overlay.open').forEach(o => o.classList.remove('open'));
+    }
+  });
+
+  // ── Start ─────────────────────────────────────────────────────
+  loadAppointments();
+
+</script>
+</body>
+</html>

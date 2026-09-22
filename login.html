@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LUMIÈRE — Sign In</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════
+       HTML STRUCTURE
+  ════════════════════════════════════════ -->
+
+  <!-- Custom cursor -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- ── Left decorative panel ── -->
+  <div class="left-panel">
+    <div class="left-bg"></div>
+    <div class="deco-ring"></div>
+    <div class="deco-ring2"></div>
+
+    <a href="index.html" class="left-logo">LUMI<span>È</span>RE</a>
+
+    <!-- Floating stat card -->
+    <div class="float-card">
+      <span class="fc-num">4.9★</span>
+      <span class="fc-label">Client Rating</span>
+    </div>
+
+    <!-- Quote at the bottom -->
+    <div class="left-content">
+      <blockquote>"Beauty begins the moment you decide to be <em>yourself</em>."</blockquote>
+      <cite>— Coco Chanel</cite>
+    </div>
+  </div>
+
+  <!-- ── Right: login form ── -->
+  <div class="right-panel">
+    <div class="form-eyebrow">Welcome Back</div>
+    <h1 class="form-title">Sign <em>In</em></h1>
+    <p class="form-sub">Access your bookings, manage appointments, and experience beauty on your terms.</p>
+
+    <!-- Toggle: Customer or Admin -->
+    <div class="role-toggle">
+      <button class="role-btn active" onclick="setRole('customer', this)">Customer</button>
+      <button class="role-btn"        onclick="setRole('admin', this)">Admin</button>
+    </div>
+
+    <!-- Success / error messages -->
+    <div id="msg" class="msg"></div>
+
+    <!-- Email field -->
+    <div class="field-wrap">
+      <label class="field-label">Email Address</label>
+      <input class="field-input" type="email" id="email" placeholder="your@email.com"/>
+      <div class="field-line"></div>
+    </div>
+
+    <!-- Password field -->
+    <div class="field-wrap">
+      <label class="field-label">Password</label>
+      <input class="field-input" type="password" id="password" placeholder="••••••••"/>
+      <div class="field-line"></div>
+    </div>
+
+    <a href="#" class="forgot-link">Forgot password?</a>
+
+    <button class="submit-btn" onclick="handleLogin()">
+      <span>Sign In</span>
+    </button>
+
+    <div class="divider"><span>or</span></div>
+
+    <div class="register-link">
+      New to Lumière? <a href="register.html">Create your account</a>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       CSS STYLES
+  ════════════════════════════════════════ -->
+  <style>
+
+    /* ── Reset ── */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* ── Colour variables ── */
+    :root {
+      --rose:      #d4a5a0;
+      --rose-deep: #b8817a;
+      --rose-pale: #f7ede8;
+      --blush:     #fdf0ec;
+      --ivory:     #faf7f2;
+      --sage-pale: #edf1eb;
+      --ink:       #2c2420;
+      --ink-soft:  #5a4e48;
+      --muted:     #9a8f8a;
+      --border:    rgba(180,140,130,0.2);
+    }
+
+    html, body {
+      min-height: 100%;
+      cursor: none;
+    }
+
+    body {
+      font-family: 'Jost', sans-serif;
+      background: var(--ivory);
+      color: var(--ink);
+      display: flex;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Custom cursor ── */
+    .cursor {
+      width: 9px;
+      height: 9px;
+      background: var(--rose-deep);
+      border-radius: 50%;
+      position: fixed;
+      z-index: 9999;
+      pointer-events: none;
+    }
+    .cursor-ring {
+      width: 34px;
+      height: 34px;
+      border: 1.5px solid var(--rose);
+      border-radius: 50%;
+      position: fixed;
+      z-index: 9998;
+      pointer-events: none;
+      transition: all 0.18s ease;
+      opacity: 0.7;
+    }
+
+    /* ── Left decorative panel ── */
+    .left-panel {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 64px;
+      min-height: 100vh;
+    }
+    .left-bg {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(145deg, var(--rose-pale) 0%, var(--blush) 50%, var(--sage-pale) 100%);
+    }
+    .left-bg::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 30% 40%, rgba(212,165,160,0.3) 0%, transparent 60%);
+    }
+    .deco-ring {
+      position: absolute;
+      width: 500px; height: 500px;
+      border-radius: 50%;
+      border: 1px solid rgba(180,140,130,0.15);
+      top: -80px; left: -80px;
+      pointer-events: none;
+    }
+    .deco-ring2 {
+      position: absolute;
+      width: 300px; height: 300px;
+      border-radius: 50%;
+      border: 1px solid rgba(168,181,160,0.15);
+      bottom: 60px; right: 40px;
+      pointer-events: none;
+    }
+    .left-logo {
+      position: absolute;
+      top: 48px; left: 64px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 24px;
+      letter-spacing: 5px;
+      color: var(--ink);
+      text-decoration: none;
+    }
+    .left-logo span { color: var(--rose-deep); }
+    .left-content { position: relative; z-index: 1; }
+    .left-content blockquote {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 34px;
+      font-style: italic;
+      font-weight: 300;
+      line-height: 1.3;
+      color: var(--ink);
+      margin-bottom: 16px;
+    }
+    .left-content blockquote em { color: var(--rose-deep); }
+    .left-content cite {
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* Floating stat card */
+    .float-card {
+      position: absolute;
+      top: 38%; right: 56px;
+      background: rgba(250,247,242,0.88);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      padding: 22px 28px;
+      animation: float 5s ease-in-out infinite;
+    }
+    .float-card .fc-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 36px;
+      color: var(--rose-deep);
+      display: block;
+      line-height: 1;
+    }
+    .float-card .fc-label {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ── Right panel: login form ── */
+    .right-panel {
+      width: 500px;
+      flex-shrink: 0;
+      background: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 80px 60px;
+      border-left: 1px solid var(--border);
+      overflow-y: auto;
+    }
+    .form-eyebrow {
+      font-size: 11px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--rose-deep);
+      margin-bottom: 18px;
+    }
+    .form-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 46px;
+      font-weight: 300;
+      color: var(--ink);
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    .form-title em { color: var(--rose-deep); font-style: italic; }
+    .form-sub {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 44px;
+      line-height: 1.75;
+    }
+
+    /* Role toggle */
+    .role-toggle {
+      display: flex;
+      margin-bottom: 36px;
+      border: 1.5px solid var(--border);
+    }
+    .role-btn {
+      flex: 1;
+      padding: 12px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-family: 'Jost', sans-serif;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      transition: all 0.3s;
+    }
+    .role-btn.active {
+      background: var(--rose-deep);
+      color: white;
+    }
+
+    /* Form fields */
+    .field-wrap {
+      margin-bottom: 28px;
+      position: relative;
+    }
+    .field-label {
+      display: block;
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .field-input {
+      width: 100%;
+      padding: 14px 0;
+      background: transparent;
+      border: none;
+      border-bottom: 1.5px solid var(--border);
+      color: var(--ink);
+      font-family: 'Jost', sans-serif;
+      font-size: 15px;
+      font-weight: 300;
+      outline: none;
+      transition: border-color 0.3s;
+      caret-color: var(--rose-deep);
+    }
+    .field-input:focus { border-bottom-color: var(--rose-deep); }
+    .field-input::placeholder { color: rgba(154,143,138,0.5); }
+    .field-line {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 1.5px;
+      background: var(--rose-deep);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s cubic-bezier(0.77,0,0.175,1);
+    }
+    .field-wrap:focus-within .field-line { transform: scaleX(1); }
+
+    .forgot-link {
+      display: block;
+      text-align: right;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-decoration: none;
+      margin-top: -14px;
+      margin-bottom: 36px;
+      transition: color 0.3s;
+    }
+    .forgot-link:hover { color: var(--rose-deep); }
+
+    /* Submit button */
+    .submit-btn {
+      width: 100%;
+      padding: 17px;
+      background: var(--rose-deep);
+      color: white;
+      border: none;
+      font-family: 'Jost', sans-serif;
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      font-weight: 500;
+      cursor: pointer;
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+    .submit-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--rose);
+      transform: translateX(-101%);
+      transition: transform 0.4s cubic-bezier(0.77,0,0.175,1);
+    }
+    .submit-btn:hover::before { transform: translateX(0); }
+    .submit-btn span { position: relative; z-index: 1; }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .divider span {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .register-link { text-align: center; font-size: 13px; color: var(--muted); }
+    .register-link a { color: var(--rose-deep); text-decoration: none; }
+
+    /* Message box */
+    .msg {
+      padding: 13px 16px;
+      margin-bottom: 22px;
+      font-size: 13px;
+      letter-spacing: 1px;
+      display: none;
+      border-left: 2.5px solid;
+    }
+    .msg.success {
+      border-color: #82b89a;
+      background: rgba(168,181,160,0.1);
+      color: #4a8060;
+      display: block;
+    }
+    .msg.error {
+      border-color: var(--rose);
+      background: rgba(212,165,160,0.1);
+      color: var(--rose-deep);
+      display: block;
+    }
+
+    /* Float animation */
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-10px); }
+    }
+
+  </style>
+
+
+  <!-- ═══════════════════════════════════════
+       JAVASCRIPT
+  ════════════════════════════════════════ -->
+  <script>
+
+    // Backend URL
+    const API = 'http://localhost:5000';
+
+    // ── Custom cursor ──
+    const cursor = document.getElementById('cursor');
+    const ring   = document.getElementById('cursorRing');
+    let mx = 0, my = 0;
+    let rx = 0, ry = 0;
+
+    document.addEventListener('mousemove', function(e) {
+      mx = e.clientX;
+      my = e.clientY;
+      cursor.style.left = (mx - 4) + 'px';
+      cursor.style.top  = (my - 4) + 'px';
+    });
+
+    (function loop() {
+      rx += (mx - rx - 17) * 0.13;
+      ry += (my - ry - 17) * 0.13;
+      ring.style.left = rx + 'px';
+      ring.style.top  = ry + 'px';
+      requestAnimationFrame(loop);
+    })();
+
+    // ── Role toggle ──
+    let currentRole = 'customer';
+
+    function setRole(role, btn) {
+      currentRole = role;
+      document.querySelectorAll('.role-btn').forEach(function(b) {
+        b.classList.remove('active');
+      });
+      btn.classList.add('active');
+    }
+
+    // Show error message
+    function showError(text) {
+      const el = document.getElementById('msg');
+      el.className   = 'msg error';
+      el.textContent = text;
+    }
+
+    // ── Login handler ──
+    async function handleLogin() {
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const msgEl    = document.getElementById('msg');
+      const btnText  = document.querySelector('.submit-btn span');
+
+      if (!email || !password) {
+        showError('Please fill in both fields.');
+        return;
+      }
+
+      btnText.textContent = 'Signing in...';
+
+      try {
+        const res  = await fetch(API + '/api/auth/login', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          localStorage.setItem('token', data.token);
+          const role = (data.user && data.user.role) ? data.user.role : currentRole;
+          localStorage.setItem('role', role);
+          localStorage.setItem('user', JSON.stringify(data.user || {}));
+
+          msgEl.className   = 'msg success';
+          msgEl.textContent = 'Welcome back ✦ Redirecting...';
+
+          setTimeout(function() {
+            location.href = (role === 'admin') ? 'admin.html' : 'booking.html';
+          }, 1200);
+
+        } else {
+          showError(data.error || 'Login failed. Please try again.');
+          btnText.textContent = 'Sign In';
+        }
+
+      } catch (err) {
+        showError('Cannot reach the server. Make sure the backend is running on port 5000.');
+        btnText.textContent = 'Sign In';
+      }
+    }
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LUMIÈRE — Book Appointment</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+
+
+</head>
+<body>
+
+  <!-- Custom cursor -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- ── Navigation ── -->
+  <nav>
+    <a href="index.html" class="nav-logo">LUMI<span>È</span>RE</a>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="service.html">Services</a></li>
+      <li><a href="booking.html" class="active">Book</a></li>
+      <li><a href="my-appointments.html">My Appointments</a></li>
+      <li><a href="login.html">Login</a></li>
+    </ul>
+  </nav>
+
+  <!-- ── Main layout ── -->
+  <div class="booking-layout">
+
+    <!-- Left: multi-step form -->
+    <div class="booking-left">
+
+      <!-- Progress bar -->
+      <div class="progress-track" id="progress">
+        <div class="prog-item active" id="pi-1"><div class="prog-num">1</div> Service</div>
+        <div class="prog-line"></div>
+        <div class="prog-item" id="pi-2"><div class="prog-num">2</div> Date & Time</div>
+        <div class="prog-line"></div>
+        <div class="prog-item" id="pi-3"><div class="prog-num">3</div> Confirm</div>
+      </div>
+
+      <!-- ── Step 1: Service + personal details ── -->
+      <div class="step-panel active" id="panel-1">
+        <div class="step-eyebrow">Step 1 of 3</div>
+        <h2 class="step-title">Choose Your<br/><em>Service</em></h2>
+        <p class="step-sub">Select what you'd like and tell us who you are.</p>
+
+        <!-- validation error shown here -->
+        <div id="msg1" class="msg-box"></div>
+
+        <!-- Service dropdown -->
+        <div class="field-wrap">
+          <label class="field-label">Service</label>
+          <select class="field-select" id="service" onchange="updateSummary()">
+            <option value="">Select a service</option>
+            <optgroup label="✦ Hair">
+              <option value="1">Hair Cut &amp; Style — LKR 1,500</option>
+              <option value="2">Hair Coloring — LKR 3,500</option>
+              <option value="3">Head Massage — LKR 800</option>
+              <option value="10">Hair Spa Treatment — LKR 2,500</option>
+              <option value="11">Keratin Smoothing — LKR 5,500</option>
+              <option value="12">Hair Extensions — LKR 8,000</option>
+            </optgroup>
+            <optgroup label="✦ Nails">
+              <option value="4">Manicure — LKR 1,200</option>
+              <option value="5">Pedicure — LKR 1,500</option>
+              <option value="13">Gel Nails — LKR 2,200</option>
+              <option value="14">Nail Art — LKR 1,800</option>
+            </optgroup>
+            <optgroup label="✦ Skin &amp; Brows">
+              <option value="6">Facial Ritual — LKR 2,000</option>
+              <option value="7">Eyebrow Design — LKR 400</option>
+              <option value="15">Eyebrow Tinting — LKR 600</option>
+              <option value="16">Face Waxing — LKR 800</option>
+              <option value="17">Eyelash Extensions — LKR 3,500</option>
+            </optgroup>
+            <optgroup label="✦ Makeup &amp; Special">
+              <option value="8">Bridal Package — LKR 15,000</option>
+              <option value="9">Event Makeup — LKR 3,000</option>
+              <option value="18">Party Makeup — LKR 2,500</option>
+              <option value="19">Photoshoot Makeup — LKR 4,000</option>
+            </optgroup>
+          </select>
+          <div class="field-line"></div>
+        </div>
+
+        <!-- Stylist dropdown (populated from API) -->
+        <div class="field-wrap">
+          <label class="field-label">Preferred Stylist</label>
+          <select class="field-select" id="stylist" onchange="updateSummary(); if(document.getElementById('apptDate').value) loadSlots();">
+            <option value="">Loading stylists...</option>
+          </select>
+          <div class="field-line"></div>
+        </div>
+
+        <!-- Name + Phone side by side -->
+        <div class="two-col">
+          <div class="field-wrap">
+            <label class="field-label">Your Name</label>
+            <input class="field-input" type="text" id="custName" placeholder="Full name" oninput="updateSummary()"/>
+            <div class="field-line"></div>
+          </div>
+          <div class="field-wrap">
+            <label class="field-label">Phone</label>
+            <input class="field-input" type="tel" id="custPhone" placeholder="+94 77 ..." oninput="updateSummary()"/>
+            <div class="field-line"></div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn-next" onclick="goStep(2)"><span>Next: Choose Time →</span></button>
+        </div>
+      </div>
+
+      <!-- ── Step 2: Date + time slot ── -->
+      <div class="step-panel" id="panel-2">
+        <div class="step-eyebrow">Step 2 of 3</div>
+        <h2 class="step-title">Date &<br/><em>Time</em></h2>
+        <p class="step-sub">Our AI will highlight the most optimal slot based on availability.</p>
+
+        <div class="field-wrap">
+          <label class="field-label">Appointment Date</label>
+          <input class="field-input" type="date" id="apptDate" onchange="loadSlots()"/>
+          <div class="field-line"></div>
+        </div>
+
+        <!-- AI recommendation box (shown after slots load) -->
+        <div class="ai-box" id="aiBox">
+          <div class="ai-box-label">AI Recommendation</div>
+          <p id="aiMsg"></p>
+        </div>
+
+        <div class="slots-label">Available Time Slots</div>
+        <div class="slots-grid" id="slotsGrid"></div>
+
+        <div class="btn-row">
+          <button class="btn-back" onclick="goStep(1)">← Back</button>
+          <button class="btn-next" onclick="goStep(3)"><span>Next: Review →</span></button>
+        </div>
+      </div>
+
+      <!-- ── Step 3: Review & confirm ── -->
+      <div class="step-panel" id="panel-3">
+        <div class="step-eyebrow">Step 3 of 3</div>
+        <h2 class="step-title">Review &<br/><em>Confirm</em></h2>
+        <p class="step-sub">Please review your booking summary on the right, then confirm below.</p>
+        <div class="btn-row">
+          <button class="btn-back" onclick="goStep(2)">← Back</button>
+          <button class="btn-next" onclick="confirmBooking()"><span>Confirm Appointment ✦</span></button>
+        </div>
+      </div>
+
+      <!-- ── Step 4: Success ── -->
+      <div class="step-panel" id="panel-4">
+        <div class="success-panel">
+          <span class="success-icon">🌸</span>
+          <h2>You're All Set!</h2>
+          <p>Your appointment at Lumière is confirmed.<br/>We can't wait to see you.</p>
+          <a href="my-appointments.html" class="success-link solid">View My Appointments</a>
+          <a href="booking.html" class="success-link outline">Book Again</a>
+        </div>
+      </div>
+
+    </div><!-- end booking-left -->
+
+    <!-- Right: live summary panel -->
+    <div class="booking-right">
+      <div class="summary-title">Your Booking</div>
+      <div class="summary-sub">Live Summary</div>
+
+      <div class="s-row">
+        <div class="s-key">Service</div>
+        <div class="s-val empty" id="s-service">Not selected yet</div>
+      </div>
+      <div class="summary-divider"></div>
+      <div class="s-row">
+        <div class="s-key">Stylist</div>
+        <div class="s-val" id="s-stylist">Any Available</div>
+      </div>
+      <div class="s-row">
+        <div class="s-key">Date</div>
+        <div class="s-val empty" id="s-date">Not selected yet</div>
+      </div>
+      <div class="s-row">
+        <div class="s-key">Time</div>
+        <div class="s-val empty" id="s-time">Not selected yet</div>
+      </div>
+      <div class="summary-divider"></div>
+      <div class="s-row">
+        <div class="s-key">Name</div>
+        <div class="s-val empty" id="s-name">—</div>
+      </div>
+      <div class="s-row">
+        <div class="s-key">Phone</div>
+        <div class="s-val empty" id="s-phone">—</div>
+      </div>
+    </div>
+
+  </div><!-- end booking-layout -->
+
+  <!-- ── Chatbot ── -->
+  <div class="chat-bubble" onclick="toggleChat()">💬</div>
+  <div class="chat-window" id="chatWin">
+    <div class="chat-head">
+      <div class="chat-head-info">
+        <div class="chat-name">Lumière Assistant</div>
+        <div class="chat-status">✦ Online now</div>
+      </div>
+      <button class="chat-close" onclick="toggleChat()" title="Close">✕</button>
+    </div>
+    <div class="chat-msgs" id="chatMsgs">
+      <div class="chat-msg bot">Hello! 🌸 I'm your Lumière assistant.<br/>How can I help you today?</div>
+    </div>
+    <div class="chat-chips" id="chatChips">
+      <button class="chip" onclick="sendChip('What services do you offer?')">Services</button>
+      <button class="chip" onclick="sendChip('What are your prices?')">Pricing</button>
+      <button class="chip" onclick="sendChip('How do I book an appointment?')">Booking</button>
+      <button class="chip" onclick="sendChip('What are your opening hours?')">Hours</button>
+      <button class="chip" onclick="sendChip('Where are you located?')">Location</button>
+    </div>
+    <div class="chat-input-row">
+      <input class="chat-input" id="chatInput" placeholder="Type your message..." onkeydown="if(event.key==='Enter') sendMsg()"/>
+      <button class="chat-send" onclick="sendMsg()">→</button>
+    </div>
+  </div>
+
+  <style>
+
+    /* ── Reset ── */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* ── Colour variables ── */
+    :root {
+      --rose:      #d4a5a0;
+      --rose-deep: #b8817a;
+      --rose-pale: #f7ede8;
+      --blush:     #fdf0ec;
+      --ivory:     #faf7f2;
+      --ink:       #2c2420;
+      --ink-soft:  #5a4e48;
+      --muted:     #9a8f8a;
+      --border:    rgba(180,140,130,0.2);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Jost', sans-serif;
+      background: var(--ivory);
+      color: var(--ink);
+      cursor: none;
+      overflow-x: hidden;
+    }
+
+    /* ── Custom cursor ── */
+    .cursor {
+      width: 9px;
+      height: 9px;
+      background: var(--rose-deep);
+      border-radius: 50%;
+      position: fixed;
+      z-index: 9999;
+      pointer-events: none;
+    }
+    .cursor-ring {
+      width: 34px;
+      height: 34px;
+      border: 1.5px solid var(--rose);
+      border-radius: 50%;
+      position: fixed;
+      z-index: 9998;
+      pointer-events: none;
+      transition: all 0.18s ease;
+      opacity: 0.7;
+    }
+
+    /* ── Navigation ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 500;
+      padding: 20px 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(250,247,242,0.95);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 24px;
+      letter-spacing: 5px;
+      color: var(--ink);
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--rose-deep); }
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 36px;
+    }
+    nav ul a {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      transition: color 0.3s;
+    }
+    nav ul a:hover, nav ul a.active { color: var(--rose-deep); }
+
+    /* ── Main two-column layout ── */
+    .booking-layout {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      min-height: 100vh;
+      padding-top: 78px; /* height of the nav */
+    }
+
+    /* ── Left: the form steps ── */
+    .booking-left {
+      padding: 72px;
+      border-right: 1px solid var(--border);
+      background: white;
+    }
+
+    /* ── Progress tracker (Step 1 / 2 / 3) ── */
+    .progress-track {
+      display: flex;
+      align-items: center;
+      margin-bottom: 56px;
+    }
+    .prog-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      transition: color 0.3s;
+    }
+    .prog-item.active { color: var(--rose-deep); }
+    .prog-item.done   { color: var(--rose); }
+    .prog-num {
+      width: 28px; height: 28px;
+      border: 1.5px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      transition: all 0.3s;
+      flex-shrink: 0;
+    }
+    .prog-item.active .prog-num {
+      border-color: var(--rose-deep);
+      background: var(--rose-deep);
+      color: white;
+    }
+    .prog-item.done .prog-num {
+      border-color: var(--rose);
+      color: var(--rose);
+    }
+    /* line between steps */
+    .prog-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+      max-width: 56px;
+      margin: 0 12px;
+    }
+
+    /* ── Step panels (only one visible at a time) ── */
+    .step-panel        { display: none; }
+    .step-panel.active { display: block; }
+
+    .step-eyebrow {
+      font-size: 10px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--rose-deep);
+      margin-bottom: 14px;
+    }
+    .step-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 44px;
+      font-weight: 300;
+      color: var(--ink);
+      line-height: 1.1;
+      margin-bottom: 10px;
+    }
+    .step-title em { color: var(--rose-deep); font-style: italic; }
+
+    .step-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 48px;
+      line-height: 1.8;
+    }
+
+    /* ── Form fields ── */
+    .field-wrap {
+      margin-bottom: 28px;
+      position: relative;
+    }
+    .field-label {
+      display: block;
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .field-input,
+    .field-select {
+      width: 100%;
+      padding: 14px 0;
+      background: transparent;
+      border: none;
+      border-bottom: 1.5px solid var(--border);
+      color: var(--ink);
+      font-family: 'Jost', sans-serif;
+      font-size: 15px;
+      font-weight: 300;
+      outline: none;
+      transition: border-color 0.3s;
+      caret-color: var(--rose-deep);
+      appearance: none;
+    }
+    .field-input:focus,
+    .field-select:focus { border-bottom-color: var(--rose-deep); }
+    .field-input::placeholder { color: rgba(154,143,138,0.45); }
+    .field-select option { background: white; color: var(--ink); }
+
+    /* animated underline on focus */
+    .field-line {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 1.5px;
+      background: var(--rose-deep);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s cubic-bezier(0.77,0,0.175,1);
+    }
+    .field-wrap:focus-within .field-line { transform: scaleX(1); }
+
+    /* two fields side by side */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 28px;
+    }
+
+    /* ── Time slot grid ── */
+    .slots-label {
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .slots-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .slot-btn {
+      padding: 13px 6px;
+      background: var(--blush);
+      border: 1.5px solid transparent;
+      text-align: center;
+      font-family: 'Jost', sans-serif;
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: var(--muted);
+      transition: all 0.25s;
+    }
+    .slot-btn:hover:not(.booked) {
+      border-color: var(--rose-deep);
+      color: var(--rose-deep);
+      background: white;
+    }
+    .slot-btn.selected {
+      background: var(--rose-deep);
+      color: white;
+      border-color: var(--rose-deep);
+    }
+    .slot-btn.booked {
+      opacity: 0.3;
+      cursor: not-allowed;
+      text-decoration: line-through;
+    }
+    /* AI recommended slot gets a subtle glow border */
+    .slot-btn.ai-pick {
+      border-color: var(--rose-deep);
+      color: var(--rose-deep);
+      background: white;
+      font-weight: 500;
+      box-shadow: 0 0 0 3px rgba(184,129,122,0.18);
+    }
+
+    /* AI recommendation box */
+    .ai-box {
+      background: var(--rose-pale);
+      border: 1.5px solid rgba(180,140,130,0.3);
+      padding: 22px 24px;
+      margin-bottom: 28px;
+      display: none; /* shown by JS after loading slots */
+    }
+    .ai-box-label {
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--rose-deep);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .ai-box-label::before { content: '✦'; font-size: 9px; }
+    .ai-box p {
+      font-size: 13px;
+      line-height: 1.8;
+      color: var(--ink-soft);
+    }
+    .ai-box strong { color: var(--rose-deep); }
+
+    /* ── Step navigation buttons ── */
+    .btn-row {
+      display: flex;
+      gap: 14px;
+      margin-top: 36px;
+    }
+    .btn-back {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--muted);
+      padding: 14px 28px;
+      font-family: 'Jost', sans-serif;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .btn-back:hover {
+      border-color: var(--ink-soft);
+      color: var(--ink);
+    }
+    .btn-next {
+      background: var(--rose-deep);
+      color: white;
+      border: none;
+      padding: 14px 36px;
+      font-family: 'Jost', sans-serif;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      font-weight: 500;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+    /* slide-in lighter rose on hover */
+    .btn-next::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--rose);
+      transform: translateX(-101%);
+      transition: transform 0.4s cubic-bezier(0.77,0,0.175,1);
+    }
+    .btn-next:hover::before { transform: translateX(0); }
+    .btn-next span { position: relative; z-index: 1; }
+
+    /* ── Success panel (step 4) ── */
+    .success-panel {
+      text-align: center;
+      padding: 40px 0;
+    }
+    .success-icon {
+      font-size: 64px;
+      display: block;
+      margin-bottom: 20px;
+      animation: pop 0.5s;
+    }
+    .success-panel h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 38px;
+      font-weight: 300;
+      color: var(--ink);
+      margin-bottom: 14px;
+    }
+    .success-panel p {
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--muted);
+      margin-bottom: 36px;
+    }
+    .success-link {
+      display: inline-block;
+      margin: 6px;
+      padding: 13px 28px;
+      font-family: 'Jost', sans-serif;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    .success-link.solid { background: var(--rose-deep); color: white; }
+    .success-link.solid:hover { background: var(--rose); }
+    .success-link.outline { border: 1.5px solid var(--rose-deep); color: var(--rose-deep); }
+    .success-link.outline:hover { background: var(--rose-deep); color: white; }
+
+    /* ── Right: live booking summary ── */
+    .booking-right {
+      padding: 72px 44px;
+      background: var(--rose-pale);
+      position: sticky;
+      top: 78px;
+      height: calc(100vh - 78px);
+      overflow-y: auto;
+    }
+    .summary-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      font-weight: 300;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+    .summary-sub {
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--rose-deep);
+      margin-bottom: 44px;
+    }
+    .summary-divider {
+      height: 1px;
+      background: rgba(180,140,130,0.2);
+      margin: 28px 0;
+    }
+    .s-row { margin-bottom: 22px; }
+    .s-key {
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+    .s-val { font-size: 14px; color: var(--ink); font-weight: 300; }
+    .s-val.empty {
+      color: rgba(154,143,138,0.45);
+      font-style: italic;
+      font-size: 13px;
+    }
+
+    /* ── Error / success inline messages ── */
+    .msg-box {
+      padding: 13px 16px;
+      margin-bottom: 24px;
+      font-size: 13px;
+      display: none;
+      border-left: 2.5px solid;
+    }
+    .msg-box.error {
+      border-color: var(--rose);
+      background: rgba(212,165,160,0.1);
+      color: var(--rose-deep);
+      display: block;
+    }
+
+    /* ── Chatbot widget ── */
+    .chat-bubble {
+      position: fixed;
+      bottom: 28px; right: 28px;
+      width: 54px; height: 54px;
+      background: var(--rose-deep);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      cursor: pointer;
+      box-shadow: 0 6px 24px rgba(184,129,122,0.4);
+      z-index: 600;
+      transition: transform 0.3s;
+    }
+    .chat-bubble:hover { transform: scale(1.1); }
+
+    .chat-window {
+      position: fixed;
+      bottom: 94px; right: 28px;
+      width: 340px;
+      background: #fff8f6;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 16px 48px rgba(180,140,130,0.18);
+      z-index: 600;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .chat-window.open { display: flex; }
+
+    .chat-head {
+      background: #fff8f6;
+      padding: 16px 20px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .chat-head-info .chat-name {
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--ink);
+      font-weight: 600;
+    }
+    .chat-head-info .chat-status { font-size: 11px; color: var(--rose-deep); margin-top: 2px; }
+    .chat-close {
+      background: none;
+      border: none;
+      font-size: 18px;
+      color: var(--ink-soft);
+      cursor: pointer;
+      line-height: 1;
+      padding: 2px 4px;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    .chat-close:hover { opacity: 1; }
+
+    .chat-msgs {
+      flex: 1;
+      padding: 16px 14px;
+      overflow-y: auto;
+      max-height: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #fff8f6;
+    }
+    .chat-msg {
+      font-size: 13px;
+      line-height: 1.75;
+      padding: 11px 15px;
+      max-width: 85%;
+      border-radius: 18px;
+    }
+    .chat-msg.bot {
+      background: #fff0ec;
+      color: var(--ink-soft);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+    .chat-msg.user {
+      background: var(--rose-deep);
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+
+    /* ── Quick-reply chips ── */
+    .chat-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px 14px;
+      background: #fff8f6;
+      border-top: 1px solid var(--border);
+    }
+    .chip {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 12px;
+      color: var(--ink-soft);
+      cursor: pointer;
+      font-family: 'Jost', sans-serif;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .chip:hover {
+      background: var(--blush);
+      border-color: var(--rose);
+      color: var(--rose-deep);
+    }
+
+    .chat-input-row {
+      display: flex;
+      border-top: 1px solid var(--border);
+      background: white;
+    }
+    .chat-input {
+      flex: 1;
+      padding: 13px 16px;
+      background: transparent;
+      border: none;
+      color: var(--ink);
+      font-family: 'Jost', sans-serif;
+      font-size: 13px;
+      outline: none;
+      caret-color: var(--rose-deep);
+    }
+    .chat-input::placeholder { color: rgba(154,143,138,0.45); }
+    .chat-send {
+      background: var(--rose-deep);
+      border: none;
+      padding: 13px 18px;
+      color: white;
+      cursor: pointer;
+      font-size: 15px;
+      transition: background 0.3s;
+    }
+    .chat-send:hover { background: var(--rose); }
+
+    /* ── Animations ── */
+    @keyframes pop {
+      0%   { transform: scale(0); }
+      80%  { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+  </style>
+
+  <script>
+
+    // Backend base URL
+    const API = 'http://localhost:5000';
+
+    // Helper: get the auth token from local storage
+    const token = () => localStorage.getItem('token');
+
+    // ── Custom cursor ──
+    const cursor = document.getElementById('cursor');
+    const ring   = document.getElementById('cursorRing');
+    let mx = 0, my = 0;
+    let rx = 0, ry = 0;
+
+    document.addEventListener('mousemove', function(e) {
+      mx = e.clientX;
+      my = e.clientY;
+      cursor.style.left = (mx - 4) + 'px';
+      cursor.style.top  = (my - 4) + 'px';
+    });
+
+    (function loop() {
+      rx += (mx - rx - 17) * 0.13;
+      ry += (my - ry - 17) * 0.13;
+      ring.style.left = rx + 'px';
+      ring.style.top  = ry + 'px';
+      requestAnimationFrame(loop);
+    })();
+
+    // Don't allow past dates in the date picker
+    document.getElementById('apptDate').min = new Date().toISOString().split('T')[0];
+
+    // Keep track of what the user has selected
+    let selectedSlot = '';
+    window.selectedServiceId = null;
+    window.selectedStylistId = null;
+
+    // ── Load stylists from the backend and fill the dropdown ──
+    async function loadStylists() {
+      const sel = document.getElementById('stylist');
+      sel.innerHTML = '<option value="">Loading stylists...</option>';
+      sel.disabled = true;
+
+      try {
+        const res  = await fetch(API + '/api/stylists');
+        if (!res.ok) throw new Error('API error');
+        const data = await res.json();
+        // data can be an array or { stylists: [...] }
+        const list = Array.isArray(data) ? data : (data.stylists || []);
+        // remove any placeholder "Unassigned" stylist
+        const real = list.filter(function(s) { return s.name !== 'Unassigned'; });
+
+        sel.innerHTML = '<option value="">Any Available Stylist</option>';
+        real.forEach(function(s) {
+          const opt = document.createElement('option');
+          opt.value       = s.id;
+          opt.textContent = s.name + (s.specialty ? ' — ' + s.specialty : '');
+          sel.appendChild(opt);
+        });
+      } catch (e) {
+        sel.innerHTML = '<option value="">Could not load stylists</option>';
+        console.warn('Stylist load failed:', e);
+      } finally {
+        sel.disabled = false;
+      }
+    }
+    loadStylists();
+
+    // ── Update the live summary panel whenever fields change ──
+    function updateSummary() {
+      const sv = document.getElementById('service');
+      const st = document.getElementById('stylist');
+      const nm = document.getElementById('custName');
+      const ph = document.getElementById('custPhone');
+
+      // store selected IDs globally
+      window.selectedServiceId = sv.value ? parseInt(sv.value) : null;
+      window.selectedStylistId = st.value ? parseInt(st.value) : null;
+
+      // helper: set a summary field value, add .empty if nothing selected
+      function set(id, val, placeholder) {
+        const el = document.getElementById(id);
+        el.textContent = val || placeholder;
+        el.className   = 's-val' + (val ? '' : ' empty');
+      }
+
+      const serviceName = sv.selectedIndex > 0 ? sv.options[sv.selectedIndex].text : '';
+      const stylistName = st.selectedIndex > 0 ? st.options[st.selectedIndex].text : '';
+      set('s-service', serviceName, 'Not selected yet');
+      set('s-stylist',  stylistName, 'Any Available');
+      set('s-name',     nm.value,    '—');
+      set('s-phone',    ph.value,    '—');
+    }
+
+    // ── Load available time slots for the selected date ──
+    async function loadSlots() {
+      const date      = document.getElementById('apptDate').value;
+      if (!date) return;
+
+      // update the summary date
+      document.getElementById('s-date').textContent = date;
+      document.getElementById('s-date').className   = 's-val';
+
+      const stylistId = document.getElementById('stylist').value;
+      const qs        = 'date=' + date + (stylistId ? '&stylist_id=' + stylistId : '');
+
+      // all possible time slots
+      const allSlots = ['9:00','9:30','10:00','10:30','11:00','11:30','12:00','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00'];
+
+      let bookedSlots = [];
+      let ai = {};
+
+      try {
+        // fetch booked slots and AI recommendation at the same time
+        const [slotsRes, aiRes] = await Promise.all([
+          fetch(API + '/api/slots?' + qs),
+          fetch(API + '/api/ai/recommend?' + qs)
+        ]);
+        if (slotsRes.ok) { const d = await slotsRes.json(); bookedSlots = d.booked || []; }
+        if (aiRes.ok)    { ai = await aiRes.json(); }
+      } catch (err) {
+        // if backend is offline, just show all slots as available
+        console.warn('Backend unreachable — showing all slots:', err);
+      }
+
+      // Render each time slot as a button
+      const grid = document.getElementById('slotsGrid');
+      grid.innerHTML = '';
+
+      allSlots.forEach(function(t) {
+        const btn = document.createElement('button');
+        const isBooked      = bookedSlots.includes(t);
+        const isRecommended = ai.recommended === t;
+
+        btn.style.cursor = isBooked ? 'not-allowed' : 'pointer';
+        btn.className    = 'slot-btn' + (isBooked ? ' booked' : '') + (isRecommended ? ' ai-pick' : '');
+        btn.textContent  = isRecommended ? '✦ ' + t : t;
+        btn.title        = isRecommended ? '★ AI Recommended' : '';
+
+        btn.onclick = function() {
+          if (this.classList.contains('booked')) return;
+          // deselect all others, then select this one
+          document.querySelectorAll('.slot-btn').forEach(function(b) { b.classList.remove('selected'); });
+          this.classList.add('selected');
+          selectedSlot         = t;
+          window.selectedSlot  = t;
+          // update summary
+          document.getElementById('s-time').textContent = t;
+          document.getElementById('s-time').className   = 's-val';
+        };
+
+        grid.appendChild(btn);
+      });
+
+      // Show the AI recommendation message
+      const box = document.getElementById('aiBox');
+      box.style.display = 'block';
+      document.getElementById('aiMsg').innerHTML =
+        ai.recommended
+          ? 'AI recommends <strong>' + ai.recommended + '</strong> — ' + ai.reason + ' ✦'
+          : 'All slots are equally available today — choose any time that suits you!';
+    }
+
+    // ── Move between steps ──
+    function goStep(step) {
+      // validate before moving forward
+      if (step === 2) {
+        const sv = document.getElementById('service').value;
+        const nm = document.getElementById('custName').value.trim();
+        const ph = document.getElementById('custPhone').value.trim();
+        if (!sv || !nm || !ph) {
+          const m = document.getElementById('msg1');
+          m.className  = 'msg-box error';
+          m.textContent = 'Please fill in all fields.';
+          return;
+        }
+      }
+      if (step === 3) {
+        if (!document.getElementById('apptDate').value) { alert('Please select a date.'); return; }
+        if (!selectedSlot) { alert('Please choose a time slot.'); return; }
+      }
+
+      // hide all panels, show the target one
+      document.querySelectorAll('.step-panel').forEach(function(p) { p.classList.remove('active'); });
+      document.getElementById('panel-' + step).classList.add('active');
+
+      // update progress indicators
+      for (let i = 1; i <= 3; i++) {
+        const el = document.getElementById('pi-' + i);
+        el.classList.remove('active', 'done');
+        if (i < step) el.classList.add('done');
+        if (i === step) el.classList.add('active');
+      }
+    }
+
+    // ── Submit the booking ──
+    async function confirmBooking() {
+      const res = await fetch(API + '/api/appointments', {
+        method:  'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': 'Bearer ' + token()
+        },
+        body: JSON.stringify({
+          service_id: window.selectedServiceId || 1,
+          stylist_id: window.selectedStylistId || null,
+          date:       document.getElementById('apptDate').value,
+          time_slot:  selectedSlot
+        })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        // show success panel
+        document.querySelectorAll('.step-panel').forEach(function(p) { p.classList.remove('active'); });
+        document.getElementById('panel-4').classList.add('active');
+        document.getElementById('progress').style.display = 'none';
+      } else {
+        alert(data.error || 'Booking failed. Please log in first.');
+      }
+    }
+
+    // ── Chatbot ──
+
+    // Fallback replies when the backend is offline
+    const botReplies = {
+      hello:    'Hello! Welcome to Lumière Salon 🌸 How can I help you today?',
+      hi:       'Hello! Welcome to Lumière Salon 🌸 How can I help you today?',
+      hey:      'Hello! Welcome to Lumière Salon 🌸 How can I help you today?',
+      service:  'We offer these services:\n✂️  Hair Cut & Style      —  LKR 1,500\n🎨  Hair Coloring         —  LKR 3,500\n💆  Head Massage          —  LKR 800\n💇  Hair Spa Treatment    —  LKR 2,500\n✨  Keratin Smoothing     —  LKR 5,500\n💅  Manicure              —  LKR 1,200\n🦶  Pedicure              —  LKR 1,500\n💎  Gel Nails             —  LKR 2,200\n🧖  Facial Ritual         —  LKR 2,000\n🔶  Eyebrow Design        —  LKR 400\n🔸  Eyebrow Tinting       —  LKR 600\n👁️  Eyelash Extensions    —  LKR 3,500\n🎭  Event Makeup          —  LKR 3,000\n👰  Bridal Package        —  LKR 15,000\nVisit our Services page for full details!',
+      offer:    'We offer these services:\n✂️  Hair Cut & Style      —  LKR 1,500\n🎨  Hair Coloring         —  LKR 3,500\n💆  Head Massage          —  LKR 800\n💇  Hair Spa Treatment    —  LKR 2,500\n✨  Keratin Smoothing     —  LKR 5,500\n💅  Manicure              —  LKR 1,200\n🦶  Pedicure              —  LKR 1,500\n💎  Gel Nails             —  LKR 2,200\n🧖  Facial Ritual         —  LKR 2,000\n🔶  Eyebrow Design        —  LKR 400\n🔸  Eyebrow Tinting       —  LKR 600\n👁️  Eyelash Extensions    —  LKR 3,500\n🎭  Event Makeup          —  LKR 3,000\n👰  Bridal Package        —  LKR 15,000\nVisit our Services page for full details!',
+      price:    'Our prices start from LKR 400 (Eyebrow Design) up to LKR 15,000 (Bridal Package).\nCheck our Services page for the complete price list!',
+      cost:     'Our prices start from LKR 400 (Eyebrow Design) up to LKR 15,000 (Bridal Package).\nCheck our Services page for the complete price list!',
+      'how much': 'Our prices start from LKR 400 (Eyebrow Design) up to LKR 15,000 (Bridal Package).\nCheck our Services page for the complete price list!',
+      hour:     'Our opening hours:\n🕘  Monday – Saturday:  9:00 AM – 6:00 PM\n🕙  Sunday:             10:00 AM – 4:00 PM\nClosed on public holidays.',
+      open:     'Our opening hours:\n🕘  Monday – Saturday:  9:00 AM – 6:00 PM\n🕙  Sunday:             10:00 AM – 4:00 PM\nClosed on public holidays.',
+      timing:   'Our opening hours:\n🕘  Monday – Saturday:  9:00 AM – 6:00 PM\n🕙  Sunday:             10:00 AM – 4:00 PM\nClosed on public holidays.',
+      book:     'Booking is easy! 📅\n1️⃣  Go to our Booking page\n2️⃣  Choose your service & stylist\n3️⃣  Pick a date and time slot\n4️⃣  Confirm — done in 60 seconds! ✦',
+      appoint:  'Booking is easy! 📅\n1️⃣  Go to our Booking page\n2️⃣  Choose your service & stylist\n3️⃣  Pick a date and time slot\n4️⃣  Confirm — done in 60 seconds! ✦',
+      reserv:   'Booking is easy! 📅\n1️⃣  Go to our Booking page\n2️⃣  Choose your service & stylist\n3️⃣  Pick a date and time slot\n4️⃣  Confirm — done in 60 seconds! ✦',
+      cancel:   'To cancel or reschedule:\n• Log in to your account\n• Go to My Appointments\n• Click Cancel or Reschedule\nOr call us: +94 77 123 4567 📞',
+      reschedul:'To cancel or reschedule:\n• Log in to your account\n• Go to My Appointments\n• Click Cancel or Reschedule\nOr call us: +94 77 123 4567 📞',
+      location: '📍 We are located in Kandy, Sri Lanka.\nFree parking is available outside the salon.\nCall us for directions: +94 77 123 4567',
+      where:    '📍 We are located in Kandy, Sri Lanka.\nFree parking is available outside the salon.\nCall us for directions: +94 77 123 4567',
+      address:  '📍 We are located in Kandy, Sri Lanka.\nFree parking is available outside the salon.\nCall us for directions: +94 77 123 4567',
+      stylist:  'Our talented team:\n✂️  Amaya Silva        —  Hair Specialist\n🎨  Kavya Perera       —  Color Expert\n💅  Nisha Fernando     —  Nail Artist\n🧖  Dulani Jayasinghe  —  Skin & Makeup\n🔶  Rashini Mendis     —  Brow & Lash Artist\n⭐  Tharushi Bandara   —  Senior Stylist\n👰  Malini Wickrama    —  Bridal Specialist\n✨  Sachini Dias       —  Skin Therapist\nAll fully certified professionals!',
+      staff:    'Our talented team:\n✂️  Amaya Silva        —  Hair Specialist\n🎨  Kavya Perera       —  Color Expert\n💅  Nisha Fernando     —  Nail Artist\n🧖  Dulani Jayasinghe  —  Skin & Makeup\n🔶  Rashini Mendis     —  Brow & Lash Artist\n⭐  Tharushi Bandara   —  Senior Stylist\n👰  Malini Wickrama    —  Bridal Specialist\n✨  Sachini Dias       —  Skin Therapist\nAll fully certified professionals!',
+      team:     'Our talented team:\n✂️  Amaya Silva        —  Hair Specialist\n🎨  Kavya Perera       —  Color Expert\n💅  Nisha Fernando     —  Nail Artist\n🧖  Dulani Jayasinghe  —  Skin & Makeup\n🔶  Rashini Mendis     —  Brow & Lash Artist\n⭐  Tharushi Bandara   —  Senior Stylist\n👰  Malini Wickrama    —  Bridal Specialist\n✨  Sachini Dias       —  Skin Therapist\nAll fully certified professionals!',
+      bridal:   '👰 Our Bridal Package — LKR 15,000\nIncludes:\n• Full hair styling\n• Professional makeup\n• Manicure & Pedicure\n• Skin prep treatment\nBook early — slots fill fast! 🌸',
+      wedding:  '👰 Our Bridal Package — LKR 15,000\nIncludes:\n• Full hair styling\n• Professional makeup\n• Manicure & Pedicure\n• Skin prep treatment\nBook early — slots fill fast! 🌸',
+      hair:     'Our hair services:\n✂️  Hair Cut & Style  —  from LKR 1,500\n🎨  Hair Coloring     —  from LKR 3,500\n💆  Head Massage      —  from LKR 800\nBook now on our Booking page!',
+      nail:     'Our nail services:\n💅  Manicure  —  from LKR 1,200\n🦶  Pedicure  —  from LKR 1,500\n💎  Gel Nails —  from LKR 2,200\n200+ colour choices available!\nBook now on our Booking page!',
+      manicure: 'Our nail services:\n💅  Manicure  —  from LKR 1,200\n🦶  Pedicure  —  from LKR 1,500\n💎  Gel Nails —  from LKR 2,200\n200+ colour choices available!\nBook now on our Booking page!',
+      facial:   'Our skin & brow services:\n🧖  Facial Ritual        —  from LKR 2,000\n✨  Eyebrow Design       —  from LKR 400\n🔸  Eyebrow Tinting      —  from LKR 600\n👁️  Eyelash Extensions   —  from LKR 3,500\nBook now on our Booking page!',
+      skin:     'Our skin & brow services:\n🧖  Facial Ritual        —  from LKR 2,000\n✨  Eyebrow Design       —  from LKR 400\n🔸  Eyebrow Tinting      —  from LKR 600\n👁️  Eyelash Extensions   —  from LKR 3,500\nBook now on our Booking page!',
+      eyebrow:  'Our skin & brow services:\n🧖  Facial Ritual        —  from LKR 2,000\n✨  Eyebrow Design       —  from LKR 400\n🔸  Eyebrow Tinting      —  from LKR 600\n👁️  Eyelash Extensions   —  from LKR 3,500\nBook now on our Booking page!',
+      lash:     'Our skin & brow services:\n🧖  Facial Ritual        —  from LKR 2,000\n✨  Eyebrow Design       —  from LKR 400\n🔸  Eyebrow Tinting      —  from LKR 600\n👁️  Eyelash Extensions   —  from LKR 3,500\nBook now on our Booking page!',
+      contact:  '📞  Phone:     +94 77 123 4567\n📧  Email:     hello@lumiere.lk\n📍  Location:  Kandy, Sri Lanka\n🕘  Open Mon–Sat 9AM–6PM',
+      phone:    '📞  Phone:     +94 77 123 4567\n📧  Email:     hello@lumiere.lk\n📍  Location:  Kandy, Sri Lanka\n🕘  Open Mon–Sat 9AM–6PM',
+      call:     '📞  Phone:     +94 77 123 4567\n📧  Email:     hello@lumiere.lk\n📍  Location:  Kandy, Sri Lanka\n🕘  Open Mon–Sat 9AM–6PM',
+      wifi:     'Yes! We offer free Wi-Fi and free parking for all our clients. 🌸',
+      parking:  'Yes! We offer free Wi-Fi and free parking for all our clients. 🌸',
+      thank:    "You're most welcome! We look forward to seeing you at Lumière. 🌸✦",
+      bye:      'Goodbye! Have a beautiful day and see you soon at Lumière! 🌸'
+    };
+
+    // Open/close the chat window
+    function toggleChat() {
+      document.getElementById('chatWin').classList.toggle('open');
+    }
+
+    // Send a quick-reply chip message
+    function sendChip(text) {
+      const input = document.getElementById('chatInput');
+      input.value = text;
+      sendMsg();
+    }
+
+    // Add a bot message bubble to the chat
+    function addBotMsg(text) {
+      const msgs = document.getElementById('chatMsgs');
+      const div  = document.createElement('div');
+      div.className       = 'chat-msg bot';
+      div.style.whiteSpace = 'pre-line';
+      div.textContent     = text;
+      msgs.appendChild(div);
+      msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    // Send a message (called on button click or Enter key)
+    async function sendMsg() {
+      const input = document.getElementById('chatInput');
+      const text  = input.value.trim();
+      if (!text) return;
+      input.value = '';
+
+      const msgs = document.getElementById('chatMsgs');
+
+      // add user bubble
+      const userDiv = document.createElement('div');
+      userDiv.className  = 'chat-msg user';
+      userDiv.textContent = text;
+      msgs.appendChild(userDiv);
+      msgs.scrollTop = msgs.scrollHeight;
+
+      // show typing indicator
+      const typing = document.createElement('div');
+      typing.className       = 'chat-msg bot';
+      typing.id              = 'typing-indicator';
+      typing.textContent     = '...';
+      typing.style.opacity   = '0.5';
+      msgs.appendChild(typing);
+      msgs.scrollTop = msgs.scrollHeight;
+
+      try {
+        // send to backend chatbot API
+        const res = await fetch(API + '/api/chatbot', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ message: text })
+        });
+        typing.remove();
+
+        if (res.ok) {
+          const data = await res.json();
+          addBotMsg(data.reply || 'Sorry, I had no reply for that 🌸');
+        } else {
+          throw new Error('bad status');
+        }
+      } catch (err) {
+        typing.remove();
+        // offline fallback: check botReplies keywords
+        const key   = Object.keys(botReplies).find(function(k) { return text.toLowerCase().includes(k); });
+        const reply = key ? botReplies[key] : 'Please call us at +94 77 123 4567 🌸';
+        addBotMsg(reply);
+      }
+    }
+
+  </script>
+</body>
+</html>

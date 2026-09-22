@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LUMIÈRE — Reviews Report</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       HTML PART
+  ════════════════════════════════════════════════════════════════ -->
+
+  <!-- ── Sidebar Navigation ── -->
+  <div class="sidebar">
+    <div class="sb-logo">LUMI<span>È</span>RE</div>
+
+    <div class="sb-section">Navigation</div>
+    <a href="admin.html"           class="sb-link"><span class="icon">◈</span> Dashboard</a>
+    <a href="manage-appts.html"    class="sb-link"><span class="icon">◷</span> Appointments</a>
+    <a href="manage-services.html" class="sb-link"><span class="icon">◇</span> Services</a>
+    <a href="manage-users.html"    class="sb-link"><span class="icon">○</span> Customers</a>
+    <a href="manage-stylists.html" class="sb-link"><span class="icon">✦</span> Stylists</a>
+
+    <div class="sb-section">Reports</div>
+    <a href="reports-reviews.html"   class="sb-link active"><span class="icon">★</span> Reviews</a>
+    <a href="reports-analytics.html" class="sb-link"><span class="icon">◇</span> Analytics</a>
+    <a href="settings.html"          class="sb-link"><span class="icon">○</span> Settings</a>
+
+    <div class="sb-footer">
+      <div class="sb-user" id="adminName">Admin Account</div>
+      <a href="login.html" class="sb-logout">← Sign Out</a>
+    </div>
+  </div>
+
+  <!-- ── Main Panel ── -->
+  <div class="main">
+
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>Reports — <em>Reviews</em> ★</h2>
+        <p id="todayDate"></p>
+      </div>
+      <div style="display:flex; gap:12px; align-items:center;">
+        <button class="refresh-btn" onclick="loadAll()">↻ Refresh</button>
+        <div class="admin-pill">✦ Admin Panel</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ── Date Range Filter Bar ── -->
+      <div style="background:white; border:1px solid var(--border); padding:20px 28px; margin-bottom:32px; box-shadow:0 2px 12px rgba(180,140,130,0.05); display:flex; align-items:center; gap:24px; flex-wrap:wrap;">
+        <div class="filter-row">
+          <label>From</label>
+          <input type="date" id="dateFrom"/>
+          <label>To</label>
+          <input type="date" id="dateTo"/>
+          <button class="filter-btn" onclick="loadAll()">Apply Filter</button>
+          <button class="refresh-btn" onclick="resetDates()">This Month</button>
+        </div>
+        <div style="margin-left:auto; font-size:11px; color:var(--muted); letter-spacing:1px;" id="rangeLabel"></div>
+      </div>
+
+      <!-- ── Summary Stat Cards ── -->
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">Total Appointments</div>
+          <div class="stat-num rose" id="stat-total"><span class="loading"></span></div>
+          <div class="stat-change" id="stat-total-sub">Loading...</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Confirmed</div>
+          <div class="stat-num" id="stat-confirmed"><span class="loading"></span></div>
+          <div class="stat-change" id="stat-confirmed-sub">Loading...</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Total Revenue</div>
+          <div class="stat-num" id="stat-revenue"><span class="loading"></span></div>
+          <div class="stat-change warn" id="stat-revenue-sub">Confirmed only</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Confirmation Rate</div>
+          <div class="stat-num" id="stat-rate"><span class="loading"></span></div>
+          <div class="stat-change" id="stat-rate-sub">Loading...</div>
+        </div>
+      </div>
+
+      <!-- ── Breakdown Table ── -->
+      <div class="section-head">
+        <h3>Appointment Breakdown</h3>
+        <span id="breakdown-range" style="font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--muted);"></span>
+      </div>
+      <div class="table-wrap" style="margin-bottom:44px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Count</th>
+              <th>Revenue</th>
+              <th>Share</th>
+            </tr>
+          </thead>
+          <tbody id="breakdownBody">
+            <tr>
+              <td colspan="4">
+                <div class="empty-state"><span class="empty-icon">⏳</span>Loading...</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ── Popular Services + Quick Stats ── -->
+      <div class="two-grid">
+        <div class="panel">
+          <h4>Most Popular Services ✦</h4>
+          <div id="servicesPanel">
+            <div class="empty-state"><span class="empty-icon">⏳</span>Loading...</div>
+          </div>
+        </div>
+        <div class="panel">
+          <h4>Quick Stats ◈</h4>
+          <div id="quickStats">
+            <div class="empty-state"><span class="empty-icon">⏳</span>Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Full Appointment List Table ── -->
+      <div class="section-head" style="margin-top:8px;">
+        <h3>All Appointments in Range</h3>
+        <span id="appt-count-label" style="font-size:11px; color:var(--muted); letter-spacing:2px; text-transform:uppercase;"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Ref</th>
+              <th>Client</th>
+              <th>Service</th>
+              <th>Stylist</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="apptBody">
+            <tr>
+              <td colspan="7">
+                <div class="empty-state"><span class="empty-icon">⏳</span>Loading appointments...</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       CSS PART
+  ════════════════════════════════════════════════════════════════ -->
+  <style>
+
+    /* ── Reset & Variables ── */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --rose: #d4a5a0;
+      --rose-deep: #b8817a;
+      --rose-pale: #f7ede8;
+      --blush: #fdf0ec;
+      --ivory: #faf7f2;
+      --ink: #2c2420;
+      --ink-soft: #5a4e48;
+      --muted: #9a8f8a;
+      --border: rgba(180, 140, 130, 0.2);
+      --green: #6b9e7a;
+    }
+
+    body {
+      font-family: 'Jost', sans-serif;
+      background: var(--ivory);
+      color: var(--ink);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: white;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+      box-shadow: 4px 0 20px rgba(180, 140, 130, 0.06);
+    }
+
+    .sb-logo {
+      padding: 32px 28px 28px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      letter-spacing: 5px;
+      color: var(--ink);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sb-logo span {
+      color: var(--rose-deep);
+    }
+
+    .sb-section {
+      padding: 22px 0 6px 28px;
+      font-size: 9px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(154, 143, 138, 0.6);
+    }
+
+    .sb-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 28px;
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transition: all 0.3s;
+      border-left: 2px solid transparent;
+    }
+
+    .sb-link:hover {
+      color: var(--ink);
+      background: var(--blush);
+    }
+
+    .sb-link.active {
+      color: var(--rose-deep);
+      border-left-color: var(--rose-deep);
+      background: var(--rose-pale);
+    }
+
+    .sb-link .icon {
+      font-size: 15px;
+      width: 18px;
+      text-align: center;
+    }
+
+    .sb-footer {
+      margin-top: auto;
+      padding: 22px 28px;
+      border-top: 1px solid var(--border);
+    }
+
+    .sb-user {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .sb-logout {
+      color: var(--rose-deep);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+
+    /* ── Main Content Area ── */
+    .main {
+      margin-left: 220px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ── Top Bar ── */
+    .topbar {
+      padding: 22px 48px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      box-shadow: 0 2px 12px rgba(180, 140, 130, 0.06);
+    }
+
+    .topbar-left h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      font-weight: 300;
+      color: var(--ink);
+    }
+
+    .topbar-left h2 em {
+      color: var(--rose-deep);
+      font-style: italic;
+    }
+
+    .topbar-left p {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      margin-top: 3px;
+    }
+
+    .admin-pill {
+      background: var(--rose-pale);
+      border: 1.5px solid var(--border);
+      color: var(--rose-deep);
+      padding: 9px 22px;
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+    }
+
+    /* ── Page Content ── */
+    .content {
+      padding: 44px 48px;
+      flex: 1;
+    }
+
+    /* ── Stat Cards ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      margin-bottom: 44px;
+    }
+
+    .stat {
+      background: white;
+      padding: 28px;
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--rose-deep);
+      box-shadow: 0 2px 12px rgba(180, 140, 130, 0.05);
+    }
+
+    .stat-label {
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 44px;
+      font-weight: 300;
+      color: var(--ink);
+      line-height: 1;
+    }
+
+    .stat-num.rose {
+      color: var(--rose-deep);
+    }
+
+    .stat-change {
+      font-size: 11px;
+      color: var(--green);
+      margin-top: 7px;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-change.warn {
+      color: #c9a96e;
+    }
+
+    /* ── Shimmer Loading Placeholder ── */
+    .loading {
+      display: inline-block;
+      width: 60px;
+      height: 44px;
+      background: linear-gradient(90deg, var(--blush) 25%, var(--ivory) 50%, var(--blush) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+      border-radius: 4px;
+    }
+
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ── Section Heading ── */
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .section-head h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px;
+      font-weight: 300;
+      color: var(--ink);
+    }
+
+    /* ── Date Filter Row ── */
+    .filter-row {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .filter-row label {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .filter-row input[type=date] {
+      padding: 8px 12px;
+      border: 1.5px solid var(--border);
+      background: white;
+      font-family: 'Jost', sans-serif;
+      font-size: 12px;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    .filter-row input[type=date]:focus {
+      border-color: var(--rose-deep);
+    }
+
+    .filter-btn {
+      background: var(--rose-deep);
+      color: white;
+      border: none;
+      padding: 8px 18px;
+      font-family: 'Jost', sans-serif;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .filter-btn:hover {
+      background: var(--rose);
+    }
+
+    .refresh-btn {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--muted);
+      padding: 8px 18px;
+      font-family: 'Jost', sans-serif;
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .refresh-btn:hover {
+      border-color: var(--rose-deep);
+      color: var(--rose-deep);
+    }
+
+    /* ── Data Table ── */
+    .table-wrap {
+      background: white;
+      border: 1px solid var(--border);
+      margin-bottom: 44px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(180, 140, 130, 0.05);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead tr {
+      background: var(--rose-pale);
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      padding: 14px 22px;
+      text-align: left;
+      font-size: 9px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    td {
+      padding: 15px 22px;
+      border-bottom: 1px solid rgba(180, 140, 130, 0.08);
+      font-size: 13px;
+      color: var(--muted);
+      vertical-align: middle;
+    }
+
+    td strong {
+      color: var(--ink);
+      font-weight: 400;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: var(--blush);
+    }
+
+    /* ── Status Badges ── */
+    .badge {
+      display: inline-block;
+      padding: 4px 14px;
+      font-size: 9px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    .badge.confirmed {
+      background: rgba(107, 158, 122, 0.1);
+      color: var(--green);
+      border: 1px solid rgba(107, 158, 122, 0.2);
+    }
+
+    .badge.pending {
+      background: var(--rose-pale);
+      color: var(--rose-deep);
+      border: 1px solid var(--border);
+    }
+
+    .badge.cancelled {
+      background: rgba(184, 129, 122, 0.08);
+      color: var(--rose-deep);
+      border: 1px solid rgba(184, 129, 122, 0.2);
+    }
+
+    /* ── Empty State ── */
+    .empty-state {
+      padding: 48px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 2;
+    }
+
+    .empty-state .empty-icon {
+      font-size: 36px;
+      display: block;
+      margin-bottom: 12px;
+      opacity: 0.4;
+    }
+
+    /* ── Two Panel Layout ── */
+    .two-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 44px;
+    }
+
+    .panel {
+      background: white;
+      padding: 32px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 12px rgba(180, 140, 130, 0.05);
+    }
+
+    .panel h4 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 300;
+      color: var(--ink);
+      margin-bottom: 26px;
+    }
+
+    /* ── Popular Services List ── */
+    .service-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(180, 140, 130, 0.1);
+    }
+
+    .service-row:last-child {
+      border-bottom: none;
+    }
+
+    .service-rank {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      color: var(--rose-deep);
+      width: 28px;
+      flex-shrink: 0;
+    }
+
+    .service-info {
+      flex: 1;
+    }
+
+    .service-info strong {
+      display: block;
+      font-size: 13px;
+      color: var(--ink);
+      font-weight: 400;
+      margin-bottom: 3px;
+    }
+
+    .service-bar-wrap {
+      flex: 1;
+      background: var(--blush);
+      height: 4px;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .service-bar {
+      height: 4px;
+      background: var(--rose-deep);
+      border-radius: 2px;
+      transition: width 0.6s ease;
+    }
+
+    .service-count {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      color: var(--ink);
+      min-width: 36px;
+      text-align: right;
+    }
+
+  </style>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       JAVASCRIPT PART
+  ════════════════════════════════════════════════════════════════ -->
+  <script>
+
+    // ── Config ─────────────────────────────────────────────────────
+    const API   = 'http://localhost:5000';
+    const token = () => localStorage.getItem('token');
+
+    // Show today's date in the topbar
+    const today = new Date();
+    document.getElementById('todayDate').textContent =
+      today.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
+      + ' · Kandy, Sri Lanka';
+
+    // ── Date Helpers ──────────────────────────────────────────────
+
+    function firstOfMonth() {
+      const d = new Date();
+      d.setDate(1);
+      return d.toISOString().split('T')[0];
+    }
+
+    function todayStr() {
+      return today.toISOString().split('T')[0];
+    }
+
+    function resetDates() {
+      document.getElementById('dateFrom').value = firstOfMonth();
+      document.getElementById('dateTo').value   = todayStr();
+      loadAll();
+    }
+
+    // ── Load Everything ───────────────────────────────────────────
+    async function loadAll() {
+      const from = document.getElementById('dateFrom').value || firstOfMonth();
+      const to   = document.getElementById('dateTo').value   || todayStr();
+
+      document.getElementById('rangeLabel').textContent = `${from}  →  ${to}`;
+
+      await Promise.all([
+        loadSummary(from, to),
+        loadAppointments(from, to)
+      ]);
+    }
+
+    // ── Summary Stats ─────────────────────────────────────────────
+    async function loadSummary(from, to) {
+      try {
+        const res  = await fetch(`${API}/api/admin/reports/summary?from=${from}&to=${to}`, {
+          headers: { 'Authorization': `Bearer ${token()}` }
+        });
+        const data = await res.json();
+
+        document.getElementById('stat-total').textContent     = data.total ?? '0';
+        document.getElementById('stat-confirmed').textContent = data.confirmed ?? '0';
+        document.getElementById('stat-revenue').textContent   = 'Rs ' + (data.total_revenue ?? 0).toLocaleString();
+        document.getElementById('stat-rate').textContent      = (data.confirmation_rate ?? 0) + '%';
+
+        document.getElementById('stat-total-sub').textContent     = `${data.pending ?? 0} pending · ${data.cancelled ?? 0} cancelled`;
+        document.getElementById('stat-confirmed-sub').textContent  = `of ${data.total ?? 0} total appointments`;
+        document.getElementById('stat-revenue-sub').textContent    = `Top: ${data.top_service ?? '—'}`;
+        document.getElementById('stat-rate-sub').textContent       = data.confirmation_rate >= 80 ? 'Excellent rate ✦'
+          : data.confirmation_rate >= 50 ? 'Good rate' : 'Needs attention';
+
+        document.getElementById('breakdown-range').textContent = `${from} → ${to}`;
+
+        const total = data.total || 0;
+        const rows  = [
+          { status: 'Confirmed', count: data.confirmed || 0, revenue: data.total_revenue || 0, cls: 'confirmed' },
+          { status: 'Pending',   count: data.pending   || 0, revenue: 0,                       cls: 'pending'   },
+          { status: 'Cancelled', count: data.cancelled || 0, revenue: 0,                       cls: 'cancelled' }
+        ];
+
+        document.getElementById('breakdownBody').innerHTML = rows.map(r => `
+          <tr>
+            <td><span class="badge ${r.cls}">${r.status}</span></td>
+            <td><strong>${r.count}</strong></td>
+            <td>${r.revenue > 0 ? 'Rs ' + r.revenue.toLocaleString() : '—'}</td>
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div style="flex:1; background:var(--blush); height:4px; border-radius:2px;">
+                  <div style="width:${total > 0 ? Math.round(r.count / total * 100) : 0}%; height:4px; background:var(--rose-deep); border-radius:2px;"></div>
+                </div>
+                <span style="font-size:12px; color:var(--muted); min-width:32px;">
+                  ${total > 0 ? Math.round(r.count / total * 100) : 0}%
+                </span>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+
+        document.getElementById('quickStats').innerHTML = `
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            ${[
+              ['Top Service',      data.top_service ?? '—',
+                'var(--rose-deep)'],
+              ['Cancellation Rate', (total > 0 ? Math.round((data.cancelled || 0) / total * 100) : 0) + '%',
+                (data.cancelled || 0) / total > 0.2 ? 'var(--rose-deep)' : 'var(--green)'],
+              ['Pending Actions',  data.pending ?? 0,
+                (data.pending || 0) > 0 ? '#c9a96e' : 'var(--green)'],
+              ['Revenue per Appt', data.confirmed > 0
+                ? 'Rs ' + Math.round(data.total_revenue / data.confirmed).toLocaleString()
+                : '—', 'var(--ink)']
+            ].map(([label, val, color]) => `
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid rgba(180,140,130,0.1);">
+                <span style="font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--muted);">${label}</span>
+                <span style="font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:300; color:${color};">${val}</span>
+              </div>
+            `).join('')}
+          </div>`;
+
+      } catch (err) {
+        ['stat-total', 'stat-confirmed', 'stat-revenue', 'stat-rate']
+          .forEach(id => document.getElementById(id).textContent = '—');
+        document.getElementById('stat-total-sub').textContent = 'Backend offline — start Flask server';
+      }
+    }
+
+    // ── Appointment Table + Popular Services ──────────────────────
+    async function loadAppointments(from, to) {
+      const tbody = document.getElementById('apptBody');
+      tbody.innerHTML = `
+        <tr><td colspan="7">
+          <div class="empty-state"><span class="empty-icon">⏳</span>Loading...</div>
+        </td></tr>`;
+
+      try {
+        const res   = await fetch(`${API}/api/admin/appointments?from=${from}&to=${to}&all=true`, {
+          headers: { 'Authorization': `Bearer ${token()}` }
+        });
+        const appts = await res.json();
+
+        document.getElementById('appt-count-label').textContent =
+          `${appts.length} appointment${appts.length !== 1 ? 's' : ''}`;
+
+        const filtered = appts.filter(a => a.date >= from && a.date <= to);
+
+        // --- Popular services ---
+        const svcMap = {};
+        filtered.forEach(a => {
+          svcMap[a.service] = (svcMap[a.service] || 0) + 1;
+        });
+        const sorted   = Object.entries(svcMap).sort((x, y) => y[1] - x[1]).slice(0, 5);
+        const maxCount = sorted[0]?.[1] || 1;
+
+        document.getElementById('servicesPanel').innerHTML = sorted.length
+          ? sorted.map(([name, count], i) => `
+              <div class="service-row">
+                <div class="service-rank">${i + 1}</div>
+                <div class="service-info"><strong>${name}</strong></div>
+                <div class="service-bar-wrap">
+                  <div class="service-bar" style="width:${Math.round(count / maxCount * 100)}%"></div>
+                </div>
+                <div class="service-count">${count}</div>
+              </div>`)
+              .join('')
+          : '<div class="empty-state" style="padding:24px;">No data yet.</div>';
+
+        // --- Full appointments table ---
+        if (!filtered.length) {
+          tbody.innerHTML = `
+            <tr><td colspan="7">
+              <div class="empty-state">
+                <span class="empty-icon">📅</span>
+                No appointments found for this date range.
+              </div>
+            </td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = filtered.map(a => `
+          <tr>
+            <td><strong>${a.ref || 'LM' + String(a.id).padStart(3, '0')}</strong></td>
+            <td><strong>${a.client}</strong></td>
+            <td>${a.service}</td>
+            <td>${a.stylist || 'Any'}</td>
+            <td>${a.date}</td>
+            <td><strong>${a.time}</strong></td>
+            <td><span class="badge ${a.status}">${capitalize(a.status)}</span></td>
+          </tr>
+        `).join('');
+
+      } catch (err) {
+        tbody.innerHTML = `
+          <tr><td colspan="7">
+            <div class="empty-state">
+              <span class="empty-icon">⚠️</span>
+              Could not load appointments. Make sure backend is running.
+            </div>
+          </td></tr>`;
+      }
+    }
+
+    // Capitalise first letter
+    function capitalize(str) {
+      return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+    }
+
+    // ── Start ──────────────────────────────────────────────────────
+    document.getElementById('dateFrom').value = firstOfMonth();
+    document.getElementById('dateTo').value   = todayStr();
+    loadAll();
+
+  </script>
+</body>
+</html>

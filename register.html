@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LUMIÈRE — Create Account</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <!-- Custom cursor dots -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- ── Left Panel (branding + perks) ── -->
+  <div class="left-panel">
+    <div class="left-bg"></div>
+    <div class="deco-ring"></div>
+
+    <a href="index.html" class="left-logo">LUMI<span>È</span>RE</a>
+
+    <div class="left-content">
+      <div class="left-eyebrow">Join Us Today</div>
+      <h2 class="left-h">Your Beauty<br/><em>Journey</em><br/>Starts Here</h2>
+      <p class="left-p">Create your Lumière account and unlock effortless booking, AI-powered recommendations, and a world of beauty.</p>
+
+      <div class="perks">
+        <div class="perk"><span class="perk-dot"></span>Book appointments in under 60 seconds</div>
+        <div class="perk"><span class="perk-dot"></span>AI suggests the best time slots for you</div>
+        <div class="perk"><span class="perk-dot"></span>Manage, edit or cancel any booking anytime</div>
+        <div class="perk"><span class="perk-dot"></span>Exclusive member discounts and offers</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Right Panel (registration form) ── -->
+  <div class="right-panel">
+    <div class="form-eyebrow">New Account</div>
+    <h1 class="form-title">Create<br/><em>Profile</em></h1>
+    <p class="form-sub">All fields are required. Your information is kept private and secure.</p>
+
+    <div id="msg" class="msg"></div>
+
+    <div class="two-col">
+      <div class="field-wrap">
+        <label class="field-label">First Name</label>
+        <input class="field-input" type="text" id="fname" placeholder="Thenuri"/>
+        <div class="field-line"></div>
+      </div>
+      <div class="field-wrap">
+        <label class="field-label">Last Name</label>
+        <input class="field-input" type="text" id="lname" placeholder="Konara"/>
+        <div class="field-line"></div>
+      </div>
+    </div>
+
+    <div class="field-wrap">
+      <label class="field-label">Email Address</label>
+      <input class="field-input" type="email" id="email" placeholder="you@email.com"/>
+      <div class="field-line"></div>
+    </div>
+
+    <div class="field-wrap">
+      <label class="field-label">Phone Number</label>
+      <input class="field-input" type="tel" id="phone" placeholder="+94 77 123 4567"/>
+      <div class="field-line"></div>
+    </div>
+
+    <div class="field-wrap">
+      <label class="field-label">Password</label>
+      <input class="field-input" type="password" id="password"
+        placeholder="Min. 8 characters" oninput="checkStrength(this.value)"/>
+      <div class="field-line"></div>
+      <div class="strength-bar">
+        <div class="strength-fill" id="strengthFill"></div>
+      </div>
+    </div>
+
+    <div class="field-wrap">
+      <label class="field-label">Confirm Password</label>
+      <input class="field-input" type="password" id="confirm" placeholder="Repeat password"/>
+      <div class="field-line"></div>
+    </div>
+
+    <button class="submit-btn" onclick="handleRegister()">
+      <span>Create My Account</span>
+    </button>
+
+    <div class="login-link">
+      Already have an account? <a href="login.html">Sign in</a>
+    </div>
+  </div>
+
+<style>
+
+  /* ── Reset & Variables ── */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --rose: #d4a5a0;
+    --rose-deep: #b8817a;
+    --rose-pale: #f7ede8;
+    --blush: #fdf0ec;
+    --ivory: #faf7f2;
+    --sage: #a8b5a0;
+    --sage-pale: #edf1eb;
+    --ink: #2c2420;
+    --muted: #9a8f8a;
+    --border: rgba(180, 140, 130, 0.2);
+  }
+
+  html, body {
+    min-height: 100%;
+    cursor: none;
+  }
+
+  body {
+    font-family: 'Jost', sans-serif;
+    background: var(--ivory);
+    color: var(--ink);
+    display: flex;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Custom Cursor ── */
+  .cursor {
+    width: 9px;
+    height: 9px;
+    background: var(--rose-deep);
+    border-radius: 50%;
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+  }
+
+  .cursor-ring {
+    width: 34px;
+    height: 34px;
+    border: 1.5px solid var(--rose);
+    border-radius: 50%;
+    position: fixed;
+    z-index: 9998;
+    pointer-events: none;
+    transition: all 0.18s ease;
+    opacity: 0.7;
+  }
+
+  /* ── Left Decorative Panel ── */
+  .left-panel {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 100px 80px;
+    min-height: 100vh;
+  }
+
+  .left-bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(150deg, var(--sage-pale) 0%, var(--ivory) 50%, var(--rose-pale) 100%);
+  }
+
+  .left-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 70% 30%, rgba(168, 181, 160, 0.25) 0%, transparent 60%);
+  }
+
+  .deco-ring {
+    position: absolute;
+    width: 480px;
+    height: 480px;
+    border-radius: 50%;
+    border: 1px solid rgba(168, 181, 160, 0.15);
+    bottom: -60px;
+    right: -60px;
+  }
+
+  .left-logo {
+    position: absolute;
+    top: 48px;
+    left: 80px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    letter-spacing: 5px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .left-logo span {
+    color: var(--rose-deep);
+  }
+
+  .left-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .left-eyebrow {
+    font-size: 11px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--rose-deep);
+    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .left-eyebrow::before {
+    content: '';
+    width: 28px;
+    height: 1px;
+    background: var(--rose-deep);
+  }
+
+  .left-h {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 56px;
+    font-weight: 300;
+    line-height: 1.1;
+    color: var(--ink);
+    margin-bottom: 22px;
+  }
+
+  .left-h em {
+    color: var(--rose-deep);
+    font-style: italic;
+  }
+
+  .left-p {
+    font-size: 14px;
+    line-height: 1.9;
+    color: var(--muted);
+    max-width: 380px;
+    margin-bottom: 44px;
+  }
+
+  .perks {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .perk {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .perk-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--rose-deep);
+    flex-shrink: 0;
+  }
+
+  /* ── Right Form Panel ── */
+  .right-panel {
+    width: 540px;
+    flex-shrink: 0;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 72px 60px;
+    border-left: 1px solid var(--border);
+    box-shadow: -8px 0 40px rgba(180, 140, 130, 0.06);
+    overflow-y: auto;
+    min-height: 100vh;
+  }
+
+  .form-eyebrow {
+    font-size: 11px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--rose-deep);
+    margin-bottom: 16px;
+  }
+
+  .form-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 42px;
+    font-weight: 300;
+    color: var(--ink);
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+
+  .form-title em {
+    color: var(--rose-deep);
+    font-style: italic;
+  }
+
+  .form-sub {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 40px;
+    line-height: 1.75;
+  }
+
+  /* ── Two Column Layout ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 28px;
+  }
+
+  /* ── Form Field ── */
+  .field-wrap {
+    margin-bottom: 26px;
+    position: relative;
+  }
+
+  .field-label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .field-input {
+    width: 100%;
+    padding: 14px 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1.5px solid var(--border);
+    color: var(--ink);
+    font-family: 'Jost', sans-serif;
+    font-size: 15px;
+    font-weight: 300;
+    outline: none;
+    transition: border-color 0.3s;
+    caret-color: var(--rose-deep);
+  }
+
+  .field-input:focus {
+    border-bottom-color: var(--rose-deep);
+  }
+
+  .field-input::placeholder {
+    color: rgba(154, 143, 138, 0.45);
+  }
+
+  .field-line {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1.5px;
+    background: var(--rose-deep);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+  }
+
+  .field-wrap:focus-within .field-line {
+    transform: scaleX(1);
+  }
+
+  /* ── Password Strength Bar ── */
+  .strength-bar {
+    height: 2px;
+    background: var(--border);
+    margin-top: 8px;
+  }
+
+  .strength-fill {
+    height: 100%;
+    width: 0;
+    transition: width 0.4s, background 0.4s;
+  }
+
+  /* ── Submit Button ── */
+  .submit-btn {
+    width: 100%;
+    padding: 17px;
+    background: var(--rose-deep);
+    color: white;
+    border: none;
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    font-weight: 500;
+    cursor: none;
+    transition: all 0.3s;
+    margin-bottom: 22px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .submit-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--rose);
+    transform: translateX(-101%);
+    transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+  }
+
+  .submit-btn:hover::before {
+    transform: translateX(0);
+  }
+
+  .submit-btn span {
+    position: relative;
+    z-index: 1;
+  }
+
+  .login-link {
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .login-link a {
+    color: var(--rose-deep);
+    text-decoration: none;
+  }
+
+  /* ── Message Box ── */
+  .msg {
+    padding: 13px 16px;
+    margin-bottom: 22px;
+    font-size: 13px;
+    display: none;
+    border-left: 2.5px solid;
+  }
+
+  .msg.success {
+    border-color: #82b89a;
+    background: rgba(168, 181, 160, 0.1);
+    color: #4a8060;
+    display: block;
+  }
+
+  .msg.error {
+    border-color: var(--rose);
+    background: rgba(212, 165, 160, 0.1);
+    color: var(--rose-deep);
+    display: block;
+  }
+
+</style>
+
+<script>
+
+  // ── Config ─────────────────────────────────────────────────────
+  const API = 'http://localhost:5000';
+
+  // ── Custom Cursor ──────────────────────────────────────────────
+  const cursor = document.getElementById('cursor');
+  const ring   = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX;
+    my = e.clientY;
+    cursor.style.left = mx - 4 + 'px';
+    cursor.style.top  = my - 4 + 'px';
+  });
+
+  (function loop() {
+    rx += (mx - rx - 17) * 0.13;
+    ry += (my - ry - 17) * 0.13;
+    ring.style.left = rx + 'px';
+    ring.style.top  = ry + 'px';
+    requestAnimationFrame(loop);
+  })();
+
+  // ── Password Strength Indicator ────────────────────────────────
+  function checkStrength(value) {
+    const fill = document.getElementById('strengthFill');
+    let score = 0;
+
+    if (value.length >= 8)          score++;
+    if (/[A-Z]/.test(value))        score++;
+    if (/[0-9]/.test(value))        score++;
+    if (/[^a-zA-Z0-9]/.test(value)) score++;
+
+    const widths  = ['0%', '28%', '52%', '78%', '100%'];
+    const colours = ['', '#d4a5a0', '#c9a96e', '#a8b5a0', '#b8817a'];
+
+    fill.style.width      = widths[score];
+    fill.style.background = colours[score];
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('msg');
+    el.className   = 'msg error';
+    el.textContent = msg;
+  }
+
+  // ── Registration Handler ───────────────────────────────────────
+  async function handleRegister() {
+    const fn  = document.getElementById('fname').value.trim();
+    const ln  = document.getElementById('lname').value.trim();
+    const em  = document.getElementById('email').value.trim();
+    const ph  = document.getElementById('phone').value.trim();
+    const pw  = document.getElementById('password').value;
+    const cf  = document.getElementById('confirm').value;
+    const msg = document.getElementById('msg');
+
+    if (!fn || !ln || !em || !ph || !pw || !cf) {
+      showError('Please fill in all fields.');
+      return;
+    }
+    if (!em.includes('@')) {
+      showError('Please enter a valid email address.');
+      return;
+    }
+    if (pw.length < 8) {
+      showError('Password must be at least 8 characters.');
+      return;
+    }
+    if (pw !== cf) {
+      showError('Passwords do not match.');
+      return;
+    }
+
+    const btn = document.querySelector('.submit-btn span');
+    btn.textContent = 'Creating account...';
+
+    try {
+      const res  = await fetch(`${API}/api/auth/register`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          first_name: fn,
+          last_name:  ln,
+          email:      em,
+          phone:      ph,
+          password:   pw
+        })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('role',  data.user ? data.user.role : 'customer');
+        localStorage.setItem('user',  JSON.stringify(data.user || {}));
+
+        msg.className   = 'msg success';
+        msg.textContent = 'Account created. Welcome to Lumière ✦';
+
+        setTimeout(() => location.href = 'booking.html', 1500);
+      } else {
+        showError(data.error || 'Registration failed. Please try again.');
+        btn.textContent = 'Create My Account';
+      }
+
+    } catch (err) {
+      showError('Cannot reach the server. Make sure the backend is running on port 5000.');
+      btn.textContent = 'Create My Account';
+    }
+  }
+
+</script>
+</body>
+</html>

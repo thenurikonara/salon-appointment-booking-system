@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LUMIÈRE — Salon</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════
+       HTML STRUCTURE
+  ════════════════════════════════════════ -->
+
+  <!-- Custom cursor elements -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- ── Navigation ── -->
+  <nav id="navbar">
+    <a href="index.html" class="nav-logo">LUMI<span>È</span>RE</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="service.html">Services</a></li>
+      <li><a href="booking.html">Book</a></li>
+      <li><a href="my-appointments.html">My Appointments</a></li>
+      <li><a href="login.html">Login</a></li>
+      <li><a href="register.html">Create Account</a></li>
+    </ul>
+    <a href="booking.html" class="nav-cta"><span>Reserve Now</span></a>
+  </nav>
+
+  <!-- ── Hero ── -->
+  <section class="hero">
+    <div class="hero-deco-circle"></div>
+    <div class="hero-deco-circle2"></div>
+
+    <!-- Left: headline and buttons -->
+    <div class="hero-left">
+      <div class="hero-eyebrow">Est. 2020 · Kandy, Sri Lanka</div>
+      <h1 class="hero-title">Where Beauty<br/>Meets <em>Artistry</em></h1>
+      <p class="hero-desc">An elevated salon experience crafted around you. AI-powered booking, world-class stylists, and a space where every detail is considered.</p>
+      <div class="hero-btns">
+        <a href="booking.html" class="btn-rose">Book Appointment</a>
+        <a href="service.html" class="btn-ghost">View Services</a>
+      </div>
+    </div>
+
+    <!-- Right: image + floating stat cards -->
+    <div class="hero-right">
+      <div class="hero-right-inner">
+        <img src="steps-of-hair-spa-at-salon-banner.webp" alt="Professional salon service"
+          style="width:100%;max-width:420px;height:auto;border-radius:60% 40% 55% 45% / 45% 55% 45% 55%;object-fit:cover;aspect-ratio:4/5;"/>
+        <div class="float-card">
+          <span class="fc-num">500+</span>
+          <span class="fc-label">Happy Clients</span>
+        </div>
+        <div class="float-card">
+          <span class="fc-num">4.9★</span>
+          <span class="fc-label">Average Rating</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Scrolling marquee banner ── -->
+  <div class="marquee-wrap">
+    <div class="marquee-track">
+      <div class="marquee-item">Hair Styling</div>
+      <div class="marquee-item">Colour Artistry</div>
+      <div class="marquee-item">Nail Design</div>
+      <div class="marquee-item">Skin Rituals</div>
+      <div class="marquee-item">Bridal Beauty</div>
+      <div class="marquee-item">AI Booking</div>
+      <div class="marquee-item">Hair Styling</div>
+      <div class="marquee-item">Colour Artistry</div>
+      <div class="marquee-item">Nail Design</div>
+      <div class="marquee-item">Skin Rituals</div>
+      <div class="marquee-item">Bridal Beauty</div>
+      <div class="marquee-item">AI Booking</div>
+    </div>
+  </div>
+
+  <!-- ── Services grid ── -->
+  <section class="services">
+    <div class="section-label">What We Offer</div>
+    <h2 class="section-title">Crafted Services<br/>for Every <em>Occasion</em></h2>
+    <div class="services-grid">
+      <div class="service-card">
+        <span class="sc-num">01</span>
+        <span class="sc-icon">✂️</span>
+        <div class="sc-name">Hair Cut & Style</div>
+        <div class="sc-desc">Precision cuts tailored to your face shape and lifestyle, from classic to cutting edge.</div>
+        <div class="sc-price">From LKR 1,500</div>
+        <div class="sc-arrow">↗</div>
+      </div>
+      <div class="service-card">
+        <span class="sc-num">02</span>
+        <span class="sc-icon">🎨</span>
+        <div class="sc-name">Hair Coloring</div>
+        <div class="sc-desc">Balayage, ombré, full colour, and highlights using premium pigments for lasting vibrancy.</div>
+        <div class="sc-price">From LKR 3,500</div>
+        <div class="sc-arrow">↗</div>
+      </div>
+      <div class="service-card">
+        <span class="sc-num">03</span>
+        <span class="sc-icon">💅</span>
+        <div class="sc-name">Nail Artistry</div>
+        <div class="sc-desc">Gel, acrylic, manicure and pedicure with 200+ colour choices and bespoke nail art.</div>
+        <div class="sc-price">From LKR 1,200</div>
+        <div class="sc-arrow">↗</div>
+      </div>
+      <div class="service-card">
+        <span class="sc-num">04</span>
+        <span class="sc-icon">🧖</span>
+        <div class="sc-name">Skin Rituals</div>
+        <div class="sc-desc">Deep-cleansing facials, threading, and treatments for luminous, healthy skin.</div>
+        <div class="sc-price">From LKR 2,000</div>
+        <div class="sc-arrow">↗</div>
+      </div>
+      <div class="service-card">
+        <span class="sc-num">05</span>
+        <span class="sc-icon">💆</span>
+        <div class="sc-name">Head Massage</div>
+        <div class="sc-desc">Therapeutic scalp treatment that relieves tension and revitalises hair from root to tip.</div>
+        <div class="sc-price">From LKR 800</div>
+        <div class="sc-arrow">↗</div>
+      </div>
+      <div class="service-card">
+        <span class="sc-num">06</span>
+        <span class="sc-icon">👰</span>
+        <div class="sc-name">Bridal Package</div>
+        <div class="sc-desc">Full-day transformation — hair, makeup, nails and skin for your most unforgettable moment.</div>
+        <div class="sc-price">From LKR 15,000</div>
+        <div class="sc-arrow">↗</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Why Lumière ── -->
+  <section class="why">
+    <div class="why-cards">
+      <div class="why-card">
+        <div class="wc-icon">🤖</div>
+        <h4>AI-Powered Booking</h4>
+        <p>Our system analyses stylist availability and booking patterns to recommend your perfect time slot automatically.</p>
+      </div>
+      <div class="why-card">
+        <div class="wc-icon">💬</div>
+        <h4>24/7 Smart Assistant</h4>
+        <p>Our chatbot answers pricing, service, and availability questions instantly — no waiting, no phone calls needed.</p>
+      </div>
+      <div class="why-card">
+        <div class="wc-icon">✦</div>
+        <h4>Effortless Booking</h4>
+        <p>Book, edit, or cancel appointments in seconds. Full control from your phone or browser, anytime.</p>
+      </div>
+    </div>
+    <div>
+      <div class="section-label">Why Lumière</div>
+      <h2 class="section-title">Elevated in<br/>Every <em>Detail</em></h2>
+      <p style="font-size:15px;line-height:1.9;color:var(--muted);margin-bottom:40px;">We built Lumière around one belief: booking a salon appointment should feel as luxurious as the appointment itself.</p>
+      <a href="register.html" class="btn-rose">Create Account</a>
+    </div>
+  </section>
+
+  <!-- ── Testimonials ── -->
+  <section class="testimonials">
+    <span class="quote-glyph">"</span>
+    <p class="testimonial-text" id="testimonialText">The AI booking suggested a slot I never would have thought of — and it was perfect. My stylist was completely free, no rush, pure bliss.</p>
+    <div class="testimonial-author" id="testimonialAuthor">— Sithumi R., Kandy</div>
+    <div class="testimonial-dots">
+      <div class="dot active" onclick="setT(0)"></div>
+      <div class="dot" onclick="setT(1)"></div>
+      <div class="dot" onclick="setT(2)"></div>
+    </div>
+  </section>
+
+  <!-- ── CTA section ── -->
+  <section class="cta-section">
+    <h2>Ready for Your<br/><em>Transformation?</em></h2>
+    <div class="cta-right">
+      <p>Book your appointment in under two minutes. Choose your service, let our AI find you the perfect slot, and walk in ready to glow.</p>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;">
+        <a href="booking.html" class="btn-rose">Book Now</a>
+        <a href="register.html" class="btn-ghost">Create Account</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ── -->
+  <footer>
+    <div class="footer-logo">LUMI<span>È</span>RE</div>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="service.html">Services</a>
+      <a href="booking.html">Book</a>
+      <a href="my-appointments.html">My Appointments</a>
+      <a href="login.html">Login</a>
+    </div>
+    <div class="footer-right">© 2025 Lumière Salon<br/>Kandy, Sri Lanka</div>
+  </footer>
+
+
+  <!-- ═══════════════════════════════════════
+       CSS STYLES
+  ════════════════════════════════════════ -->
+  <style>
+
+    /* ── Reset ── */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* ── Colour palette ── */
+    :root {
+      --rose:       #d4a5a0;
+      --rose-deep:  #b8817a;
+      --rose-pale:  #f7ede8;
+      --blush:      #fdf0ec;
+      --ivory:      #faf7f2;
+      --sage-pale:  #edf1eb;
+      --gold:       #c9a96e;
+      --ink:        #2c2420;
+      --ink-soft:   #9c5b3a;
+      --muted:      #9a8f8a;
+      --border:     rgba(180,140,130,0.2);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Jost', sans-serif;
+      background: var(--ivory);
+      color: var(--ink);
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ── Custom cursor ── */
+    .cursor {
+      width: 9px;
+      height: 9px;
+      background: var(--rose-deep);
+      border-radius: 50%;
+      position: fixed;
+      z-index: 9999;
+      pointer-events: none;
+    }
+    .cursor-ring {
+      width: 34px;
+      height: 34px;
+      border: 1.5px solid var(--rose);
+      border-radius: 50%;
+      position: fixed;
+      z-index: 9998;
+      pointer-events: none;
+      transition: all 0.18s ease;
+      opacity: 0.7;
+    }
+
+    /* ── Navigation bar ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 500;
+      padding: 24px 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.4s;
+    }
+    nav.scrolled {
+      background: rgba(250,247,242,0.94);
+      backdrop-filter: blur(16px);
+      padding: 16px 72px;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px;
+      letter-spacing: 5px;
+      color: var(--ink);
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--rose-deep); }
+    .nav-links {
+      display: flex;
+      gap: 40px;
+      list-style: none;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover { color: var(--rose-deep); }
+    .nav-cta {
+      border: 1.5px solid var(--rose-deep);
+      color: var(--rose-deep);
+      padding: 10px 26px;
+      font-family: 'Jost', sans-serif;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: all 0.4s;
+      position: relative;
+      overflow: hidden;
+    }
+    .nav-cta::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--rose-deep);
+      transform: translateX(-101%);
+      transition: transform 0.4s cubic-bezier(0.77,0,0.175,1);
+    }
+    .nav-cta:hover::before { transform: translateX(0); }
+    .nav-cta span { position: relative; z-index: 1; }
+    .nav-cta:hover span { color: #fff; }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh;
+      background: linear-gradient(155deg, var(--blush) 0%, var(--ivory) 50%, var(--sage-pale) 100%);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-deco-circle {
+      position: absolute;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      border: 1px solid rgba(180,140,130,0.15);
+      top: -100px; right: -100px;
+      pointer-events: none;
+    }
+    .hero-deco-circle2 {
+      position: absolute;
+      width: 400px; height: 400px;
+      border-radius: 50%;
+      border: 1px solid rgba(168,181,160,0.15);
+      bottom: 80px; right: 60px;
+      pointer-events: none;
+    }
+    .hero-left {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 160px 80px 80px;
+      position: relative;
+      z-index: 2;
+    }
+    .hero-eyebrow {
+      font-size: 11px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--rose-deep);
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      opacity: 0;
+      animation: fadeUp 1s 0.3s forwards;
+    }
+    .hero-eyebrow::before {
+      content: '';
+      width: 36px; height: 1px;
+      background: var(--rose-deep);
+    }
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(58px, 6.5vw, 90px);
+      line-height: 0.95;
+      font-weight: 300;
+      color: var(--ink);
+      margin-bottom: 32px;
+      opacity: 0;
+      animation: fadeUp 1s 0.5s forwards;
+    }
+    .hero-title em { color: var(--rose-deep); font-style: italic; }
+    .hero-desc {
+      font-size: 15px;
+      line-height: 1.9;
+      color: var(--muted);
+      max-width: 420px;
+      margin-bottom: 52px;
+      font-weight: 300;
+      opacity: 0;
+      animation: fadeUp 1s 0.7s forwards;
+    }
+    .hero-btns {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      opacity: 0;
+      animation: fadeUp 1s 0.9s forwards;
+    }
+
+    /* Buttons */
+    .btn-rose {
+      background: var(--rose-deep);
+      color: #fff;
+      padding: 16px 38px;
+      border: none;
+      font-family: 'Jost', sans-serif;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: background 0.3s;
+    }
+    .btn-rose:hover { background: var(--rose); }
+    .btn-ghost {
+      color: var(--ink-soft);
+      font-size: 12px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 300;
+      transition: color 0.3s;
+    }
+    .btn-ghost:hover { color: var(--rose-deep); }
+    .btn-ghost::after { content: '→'; transition: transform 0.3s; }
+    .btn-ghost:hover::after { transform: translateX(6px); }
+
+    /* Hero right */
+    .hero-right { position: relative; z-index: 1; }
+    .hero-right-inner {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .float-card {
+      position: absolute;
+      background: rgba(250,247,242,0.9);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      padding: 18px 24px;
+    }
+    .float-card:nth-child(2) { bottom: 20%; left: 8%; animation: float 5s ease-in-out infinite; }
+    .float-card:nth-child(3) { top: 28%; right: 6%; animation: float 6s 1s ease-in-out infinite; }
+    .float-card .fc-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 34px;
+      color: var(--rose-deep);
+      display: block;
+      line-height: 1;
+    }
+    .float-card .fc-label {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ── Marquee ── */
+    .marquee-wrap {
+      overflow: hidden;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--rose-pale);
+      padding: 16px 0;
+    }
+    .marquee-track {
+      display: flex;
+      gap: 60px;
+      animation: marquee 22s linear infinite;
+      width: max-content;
+    }
+    .marquee-item {
+      font-size: 11px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--rose-deep);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .marquee-item::after { content: '✦'; font-size: 9px; color: var(--rose); }
+
+    /* ── Services ── */
+    .services {
+      padding: 140px 72px;
+      background: var(--ivory);
+    }
+    .section-label {
+      font-size: 11px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--rose-deep);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .section-label::before { content: ''; width: 28px; height: 1px; background: var(--rose-deep); }
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(38px, 4.5vw, 60px);
+      font-weight: 300;
+      line-height: 1.1;
+      color: var(--ink);
+      margin-bottom: 72px;
+    }
+    .section-title em { color: var(--rose-deep); font-style: italic; }
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .service-card {
+      background: var(--blush);
+      padding: 44px 36px;
+      border: 1px solid transparent;
+      transition: all 0.4s;
+      position: relative;
+      overflow: hidden;
+    }
+    .service-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--rose-deep);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s cubic-bezier(0.77,0,0.175,1);
+    }
+    .service-card:hover {
+      background: white;
+      border-color: var(--border);
+      box-shadow: 0 16px 48px rgba(180,140,130,0.14);
+    }
+    .service-card:hover::after { transform: scaleX(1); }
+    .sc-num { font-size: 11px; letter-spacing: 4px; color: var(--rose); margin-bottom: 20px; display: block; }
+    .sc-icon { font-size: 32px; margin-bottom: 18px; display: block; transition: transform 0.3s; }
+    .service-card:hover .sc-icon { transform: scale(1.12); }
+    .sc-name { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 300; color: var(--ink); margin-bottom: 12px; }
+    .sc-desc { font-size: 13px; line-height: 1.85; color: var(--muted); margin-bottom: 24px; }
+    .sc-price { color: var(--rose-deep); font-size: 12px; letter-spacing: 2px; font-weight: 500; }
+    .sc-arrow { position: absolute; top: 36px; right: 36px; color: var(--border); font-size: 18px; transition: all 0.3s; opacity: 0; }
+    .service-card:hover .sc-arrow { opacity: 1; color: var(--rose-deep); transform: translate(3px,-3px); }
+
+    /* ── Why section ── */
+    .why {
+      padding: 140px 72px;
+      background: linear-gradient(135deg, var(--rose-pale) 0%, var(--ivory) 60%, var(--sage-pale) 100%);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+    .why-cards { display: flex; flex-direction: column; gap: 20px; }
+    .why-card {
+      background: white;
+      padding: 32px 36px;
+      border: 1px solid var(--border);
+      transition: transform 0.3s;
+    }
+    .why-card:hover { transform: translateX(6px); }
+    .why-card .wc-icon { font-size: 28px; margin-bottom: 14px; }
+    .why-card h4 { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 300; color: var(--ink); margin-bottom: 8px; }
+    .why-card p { font-size: 13px; line-height: 1.8; color: var(--muted); }
+
+    /* ── Testimonials ── */
+    .testimonials {
+      padding: 140px 72px;
+      background: var(--ivory);
+      text-align: center;
+    }
+    .quote-glyph {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 100px;
+      line-height: 0.4;
+      color: rgba(212,165,160,0.25);
+      display: block;
+      margin-bottom: 28px;
+    }
+    .testimonial-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(22px, 3vw, 34px);
+      font-style: italic;
+      font-weight: 300;
+      line-height: 1.5;
+      color: var(--ink);
+      max-width: 780px;
+      margin: 0 auto 28px;
+    }
+    .testimonial-author {
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--rose-deep);
+    }
+    .testimonial-dots {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 44px;
+    }
+    .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--border);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .dot.active {
+      background: var(--rose-deep);
+      width: 22px;
+      border-radius: 3px;
+    }
+
+    /* ── CTA section ── */
+    .cta-section {
+      background: var(--rose-pale);
+      padding: 120px 72px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 72px;
+      align-items: center;
+      border-top: 1px solid var(--border);
+    }
+    .cta-section h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(38px, 4.5vw, 58px);
+      font-weight: 300;
+      line-height: 1.1;
+      color: var(--ink);
+    }
+    .cta-section h2 em { color: var(--rose-deep); font-style: italic; }
+    .cta-right { display: flex; flex-direction: column; gap: 24px; }
+    .cta-right p { font-size: 15px; line-height: 1.9; color: var(--muted); }
+
+    /* ── Footer ── */
+    footer {
+      padding: 56px 72px;
+      border-top: 1px solid var(--border);
+      background: white;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 40px;
+    }
+    .footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 22px; letter-spacing: 5px; color: var(--ink); }
+    .footer-logo span { color: var(--rose-deep); }
+    .footer-links { display: flex; gap: 32px; justify-content: center; }
+    .footer-links a { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.3s; }
+    .footer-links a:hover { color: var(--rose-deep); }
+    .footer-right { text-align: right; font-size: 12px; color: var(--muted); letter-spacing: 1px; line-height: 1.8; }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-12px); }
+    }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+  </style>
+
+
+  <!-- ═══════════════════════════════════════
+       JAVASCRIPT
+  ════════════════════════════════════════ -->
+  <script>
+
+    // ── Custom cursor ──
+    const cursor = document.getElementById('cursor');
+    const ring   = document.getElementById('cursorRing');
+    let mx = 0, my = 0;
+    let rx = 0, ry = 0;
+
+    document.addEventListener('mousemove', function(e) {
+      mx = e.clientX;
+      my = e.clientY;
+      cursor.style.left = (mx - 4) + 'px';
+      cursor.style.top  = (my - 4) + 'px';
+    });
+
+    (function loop() {
+      rx += (mx - rx - 17) * 0.13;
+      ry += (my - ry - 17) * 0.13;
+      ring.style.left = rx + 'px';
+      ring.style.top  = ry + 'px';
+      requestAnimationFrame(loop);
+    })();
+
+    // ── Navbar scroll behaviour ──
+    window.addEventListener('scroll', function() {
+      const nav = document.getElementById('navbar');
+      if (window.scrollY > 60) {
+        nav.classList.add('scrolled');
+      } else {
+        nav.classList.remove('scrolled');
+      }
+    });
+
+    // ── Testimonials slider ──
+    const testimonials = [
+      {
+        t: "The AI booking suggested a slot I never would have thought of — and it was perfect. My stylist was completely free, no rush, pure bliss.",
+        a: "— Sithumi R., Kandy"
+      },
+      {
+        t: "I've been to salons all over Sri Lanka. Lumière is on another level — the ambience, the service, the attention to detail. Simply outstanding.",
+        a: "— Malki J., Colombo"
+      },
+      {
+        t: "Booked a bridal package and the chatbot answered every single question I had at 11pm. That kind of care is rare.",
+        a: "— Chamindi P., Gampaha"
+      }
+    ];
+
+    function setT(i) {
+      document.getElementById('testimonialText').textContent   = testimonials[i].t;
+      document.getElementById('testimonialAuthor').textContent = testimonials[i].a;
+      document.querySelectorAll('.dot').forEach(function(dot, j) {
+        dot.classList.toggle('active', i === j);
+      });
+    }
+
+    // Auto-advance every 5 seconds
+    setInterval(function() {
+      const activeDot = document.querySelector('.dot.active');
+      const allDots   = [...document.querySelectorAll('.dot')];
+      const current   = allDots.indexOf(activeDot);
+      setT((current + 1) % 3);
+    }, 5000);
+
+  </script>
+</body>
+</html>
